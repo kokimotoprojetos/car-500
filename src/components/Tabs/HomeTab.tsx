@@ -504,37 +504,44 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
       <AnimatePresence>
         {showWelcomeModal && (
           <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[120] flex items-center justify-center p-6 select-none font-sans">
-            {/* Confetti container */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {Array.from({ length: 40 }).map((_, i) => {
-                const colors = ['#22d3ee', '#3b82f6', '#f59e0b', '#10b981', '#ec4899'];
-                const size = Math.random() * 8 + 4;
+            {/* Confetti Explosion container */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-50">
+              {Array.from({ length: 80 }).map((_, i) => {
+                const colors = ['#22d3ee', '#3b82f6', '#f59e0b', '#10b981', '#ec4899', '#a855f7'];
+                const size = Math.random() * 8 + 6;
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                const delay = Math.random() * 2;
-                const duration = Math.random() * 3 + 2.5;
-                const left = Math.random() * 100;
+                
+                // Burst physics equations starting from center
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 260 + 80;
+                const targetX = Math.cos(angle) * velocity;
+                const targetY = Math.sin(angle) * velocity - 120; // Gravity simulation lift
+                
                 return (
                   <motion.div
                     key={i}
-                    initial={{ y: -20, x: `${left}%`, rotate: 0, opacity: 1 }}
+                    initial={{ x: '0px', y: '0px', rotate: 0, scale: 0, opacity: 1 }}
                     animate={{
-                      y: '100vh',
-                      x: `${left + (Math.random() * 20 - 10)}%`,
-                      rotate: 360,
-                      opacity: 0
+                      x: `${targetX}px`,
+                      y: `${targetY}px`,
+                      rotate: Math.random() * 720 - 360,
+                      scale: [0, 1.2, 0.8, 0],
+                      opacity: [1, 1, 0.7, 0]
                     }}
                     transition={{
-                      duration: duration,
-                      delay: delay,
-                      ease: 'linear',
-                      repeat: Infinity
+                      duration: Math.random() * 1.6 + 1.0,
+                      ease: 'easeOut',
+                      repeat: 0
                     }}
                     style={{
                       position: 'absolute',
+                      left: '50%',
+                      top: '50%',
                       width: size,
                       height: size,
                       backgroundColor: color,
-                      borderRadius: Math.random() > 0.5 ? '50%' : '0%'
+                      borderRadius: Math.random() > 0.5 ? '50%' : '0%',
+                      transform: 'translate(-50%, -50%)'
                     }}
                   />
                 );
