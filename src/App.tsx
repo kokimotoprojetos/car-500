@@ -13,7 +13,6 @@ import PackagesTab from './components/Tabs/PackagesTab';
 import RechargeTab from './components/Tabs/RechargeTab';
 import SupportTab from './components/Tabs/SupportTab';
 import ProfileTab from './components/Tabs/ProfileTab';
-import WithdrawTab from './components/Tabs/WithdrawTab';
 import InviteTab from './components/Tabs/InviteTab';
 
 import { UserState } from './types';
@@ -124,6 +123,7 @@ export default function App() {
             onUpdateUser={handleUpdateUser}
             triggerToast={triggerToast}
             onNavigate={setActiveTab}
+            initialSubTab="deposit"
           />
         );
       case 'support':
@@ -146,11 +146,12 @@ export default function App() {
         );
       case 'withdraw':
         return (
-          <WithdrawTab
+          <RechargeTab
             user={user}
             onUpdateUser={handleUpdateUser}
             triggerToast={triggerToast}
             onNavigate={setActiveTab}
+            initialSubTab="withdraw"
           />
         );
       case 'invite':
