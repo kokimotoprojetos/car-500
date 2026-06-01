@@ -101,34 +101,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         // Login flow
         if (!existingDb) {
-          // Create user anyway to make testing smooth and foolproof for the user
-          const referrer = localStorage.getItem('pending_invite_referrer') || '';
-          const defaultUser = {
-            uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-            phone: emailVal,
-            balance: 16.0,
-            jobDeposit: 0.0,
-            totalWithdrawn: 0.0,
-            vipLevel: 'Bronze',
-            checkedInToday: false,
-            rechargeRecords: [],
-            withdrawRecords: [],
-            activeInvestments: [],
-            passwordHash: password,
-            referredBy: referrer,
-            createdAt: Date.now()
-          };
-
-          const success = await saveUserToSupabase(defaultUser);
-          if (success) {
-            localStorage.setItem(userKey, JSON.stringify(defaultUser));
-            triggerToast('Nova conta simulada ativada com saldo bônus de R$16!', 'success');
-            setTimeout(() => {
-              onLoginSuccess(emailVal);
-            }, 1200);
-          } else {
-            triggerToast('Erro ao inicializar conta no servidor.');
-          }
+          triggerToast('Gmail não encontrado. Registre-se para poder prosseguir.');
+          setLoading(false);
+          return;
         } else {
           if (existingDb.passwordHash !== password) {
             triggerToast('Senha incorreta.');
