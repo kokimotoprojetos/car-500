@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Phone, Lock, ChevronDown, CheckCircle, Car } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getUserFromSupabase, saveUserToSupabase } from '../lib/supabase';
 
 interface LoginScreenProps {
   onLoginSuccess: (phoneNumber: string) => void;
@@ -18,14 +19,13 @@ const COUNTRY_CODES = [
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [countryCode, setCountryCode] = useState('+27');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
   // Custom alert / notification message
   const [notification, setNotification] = useState<{ status: 'success' | 'detail'; text: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const triggerToast = (text: string, status: 'success' | 'detail' = 'detail') => {
     setNotification({ status, text });
@@ -42,10 +42,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }
   }, []);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone || phone.trim().length < 6) {
-      triggerToast('Insira um número de telefone válido (no mínimo 6 dígitos).');
+    if (loading) return;
+
+    const emailVal = email.trim().toLowerCase();
+    if (!emailVal || !emailVal.endsWith('@gmail.com')) {
+      triggerToast('Insira um e-mail do Gmail válido (@gmail.com).');
       return;
     }
     if (!password || password.trim().length < 4) {
@@ -53,53 +56,31 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       return;
     }
 
-    const fullPhone = `${countryCode}${phone.trim()}`;
-    const userKey = `user_state_${fullPhone}`;
-    const existing = localStorage.getItem(userKey);
+    const userKey = `user_state_${emailVal}`;
 
-    if (isRegistering) {
-      if (existing) {
-        triggerToast('Este número de telefone já está registrado.');
-        return;
-      }
-      // Register new simulation profile with default balance
-      const referrer = localStorage.getItem('pending_invite_referrer') || '';
-      const initialUser = {
-        uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-        phone: fullPhone,
-        balance: 16.0,
-        jobDeposit: 0.0,
-        totalWithdrawn: 0.0,
-        vipLevel: 'Bronze',
-        checkedInToday: false,
-        spinTurns: 1, // Start with 1 free spin!
-        rechargeRecords: [],
-        withdrawRecords: [],
-        activeInvestments: [],
-        passwordHash: password,
-        referredBy: referrer,
-        createdAt: Date.now()
-      };
-      localStorage.setItem(userKey, JSON.stringify(initialUser));
-      triggerToast('Conta criada! Você ganhou bônus de R$16! Faça login.', 'success');
-      setTimeout(() => {
-        setIsRegistering(false);
-      }, 1000);
-    } else {
-      // Login flow
-      if (!existing) {
-        // Create user anyway to make testing smooth and foolproof for the user,
-        // but notify them! It is extremely elegant to support automatic quick-entry.
+    setLoading(true);
+    try {
+      // Check database first using the email address
+      const existingDb = await getUserFromSupabase(emailVal);
+
+      if (isRegistering) {
+        if (existingDb) {
+          triggerToast('Este e-mail já está registrado.');
+          setLoading(false);
+          return;
+        }
+
+        // Register new profile with default balance
         const referrer = localStorage.getItem('pending_invite_referrer') || '';
-        const defaultUser = {
+        const initialUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-          phone: fullPhone,
-          balance: 16.0, // Give them R$16.00 credit automatically so they can try packages out of the box!
+          phone: emailVal, // we store email inside the existing primary key/phone field
+          balance: 16.0,
           jobDeposit: 0.0,
           totalWithdrawn: 0.0,
           vipLevel: 'Bronze',
           checkedInToday: false,
-          spinTurns: 2, // Give them 2 free spins to test!
+          spinTurns: 1, // Start with 1 free spin!
           rechargeRecords: [],
           withdrawRecords: [],
           activeInvestments: [],
@@ -107,22 +88,67 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           referredBy: referrer,
           createdAt: Date.now()
         };
-        localStorage.setItem(userKey, JSON.stringify(defaultUser));
-        triggerToast('Nova conta simulada ativada com saldo bônus de R$16!', 'success');
-        setTimeout(() => {
-          onLoginSuccess(fullPhone);
-        }, 1200);
-      } else {
-        const parsed = JSON.parse(existing);
-        if (parsed.passwordHash !== password) {
-          triggerToast('Senha incorreta.');
-          return;
+
+        const success = await saveUserToSupabase(initialUser);
+        if (success) {
+          localStorage.setItem(userKey, JSON.stringify(initialUser));
+          triggerToast('Conta criada! Você ganhou bônus de R$16! Faça login.', 'success');
+          setTimeout(() => {
+            setIsRegistering(false);
+          }, 1000);
+        } else {
+          triggerToast('Erro ao criar conta no servidor. Tente novamente.');
         }
-        triggerToast('Login efetuado com sucesso!', 'success');
-        setTimeout(() => {
-          onLoginSuccess(fullPhone);
-        }, 800);
+      } else {
+        // Login flow
+        if (!existingDb) {
+          // Create user anyway to make testing smooth and foolproof for the user
+          const referrer = localStorage.getItem('pending_invite_referrer') || '';
+          const defaultUser = {
+            uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
+            phone: emailVal,
+            balance: 16.0,
+            jobDeposit: 0.0,
+            totalWithdrawn: 0.0,
+            vipLevel: 'Bronze',
+            checkedInToday: false,
+            spinTurns: 2,
+            rechargeRecords: [],
+            withdrawRecords: [],
+            activeInvestments: [],
+            passwordHash: password,
+            referredBy: referrer,
+            createdAt: Date.now()
+          };
+
+          const success = await saveUserToSupabase(defaultUser);
+          if (success) {
+            localStorage.setItem(userKey, JSON.stringify(defaultUser));
+            triggerToast('Nova conta simulada ativada com saldo bônus de R$16!', 'success');
+            setTimeout(() => {
+              onLoginSuccess(emailVal);
+            }, 1200);
+          } else {
+            triggerToast('Erro ao inicializar conta no servidor.');
+          }
+        } else {
+          if (existingDb.passwordHash !== password) {
+            triggerToast('Senha incorreta.');
+            setLoading(false);
+            return;
+          }
+          localStorage.setItem(userKey, JSON.stringify(existingDb));
+          triggerToast('Login efetuado com sucesso!', 'success');
+          setTimeout(() => {
+            onLoginSuccess(emailVal);
+          }, 800);
+        }
       }
+    } catch (err) {
+      console.error(err);
+      triggerToast('Erro de conexão ou servidor. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -160,54 +186,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       <div className="relative z-10 mt-2 mb-auto pt-2">
         <form onSubmit={handleAuth} className="space-y-4">
           
-          {/* Phone input with country code */}
+          {/* Gmail email input */}
           <div className="space-y-1.5">
             <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-              Telefone / Phone Number
+              E-mail do Gmail / Gmail Address
             </label>
-            <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-3 focus-within:border-cyan-500/50 transition-all">
-              {/* Dropdown selector triggers popup */}
-              <button
-                type="button"
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-1 text-slate-200 font-bold bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800/80 mr-2 shrink-0 active:scale-95 transition-all"
-              >
-                <span>{countryCode}</span>
-                <ChevronDown size={14} className="text-slate-400" />
-              </button>
-
-              {/* Country select items custom popup */}
-              <AnimatePresence>
-                {showDropdown && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-3 top-16 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-1 divide-y divide-slate-800/40"
-                  >
-                    {COUNTRY_CODES.map((item) => (
-                      <button
-                        key={item.code}
-                        type="button"
-                        onClick={() => {
-                          setCountryCode(item.code);
-                          setShowDropdown(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800/80 rounded-lg text-slate-300 flex justify-between items-center"
-                      >
-                        <span>{item.name}</span>
-                        <span className="font-bold text-cyan-400">{item.code}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
+            <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
+              <span className="text-xs text-slate-500 uppercase tracking-wider font-bold mr-3 shrink-0">
+                Gmail
+              </span>
               <input
-                type="tel"
-                placeholder="Insira seu telefone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                type="email"
+                placeholder="usuario@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 bg-transparent border-none text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-0 leading-none h-full self-center"
                 required
               />

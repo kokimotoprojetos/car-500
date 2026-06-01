@@ -16,6 +16,7 @@ import ProfileTab from './components/Tabs/ProfileTab';
 import InviteTab from './components/Tabs/InviteTab';
 
 import { UserState } from './types';
+import { saveUserToSupabase, getUserFromSupabase } from './lib/supabase';
 
 export default function App() {
   const [user, setUser] = useState<UserState | null>(null);
@@ -64,17 +65,50 @@ export default function App() {
     return () => clearInterval(ticker);
   }, [user?.isLoggedIn, user?.activeInvestments?.length]);
 
+  // Periodic sync to Supabase (every 10 seconds) to persist passive earnings
+  useEffect(() => {
+    if (!user || !user.isLoggedIn || !user.phone) return;
+
+    const syncInterval = setInterval(() => {
+      const userKey = `user_state_${user.phone}`;
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          saveUserToSupabase(parsed);
+        } catch (e) {
+          console.error('Error in periodic sync to Supabase:', e);
+        }
+      }
+    }, 10000);
+
+    return () => clearInterval(syncInterval);
+  }, [user?.phone, user?.isLoggedIn]);
+
   // Auth logins handler
-  const handleLoginSuccess = (phoneNumber: string) => {
-    const userKey = `user_state_${phoneNumber}`;
-    const stored = localStorage.getItem(userKey);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      parsed.isLoggedIn = true;
-      setUser(parsed);
-      localStorage.setItem(userKey, JSON.stringify(parsed));
+  const handleLoginSuccess = async (phoneNumber: string) => {
+    const dbUser = await getUserFromSupabase(phoneNumber);
+    if (dbUser) {
+      dbUser.isLoggedIn = true;
+      setUser(dbUser);
+      localStorage.setItem(`user_state_${phoneNumber}`, JSON.stringify(dbUser));
       setActiveTab('home');
       triggerToast('Acesso Premium Liberado!', 'success');
+    } else {
+      // Fallback to local storage if database lookup fails but user is cached locally
+      const userKey = `user_state_${phoneNumber}`;
+      const stored = localStorage.getItem(userKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.isLoggedIn = true;
+        setUser(parsed);
+        localStorage.setItem(userKey, JSON.stringify(parsed));
+        saveUserToSupabase(parsed); // Re-sync to database
+        setActiveTab('home');
+        triggerToast('Acesso Premium Liberado! (Offline)', 'success');
+      } else {
+        triggerToast('Erro ao carregar dados do usuário.');
+      }
     }
   };
 
@@ -82,6 +116,7 @@ export default function App() {
     setUser(updatedState);
     if (updatedState.phone) {
       localStorage.setItem(`user_state_${updatedState.phone}`, JSON.stringify(updatedState));
+      saveUserToSupabase(updatedState);
     }
   };
 
@@ -90,6 +125,7 @@ export default function App() {
       const loggedOut = { ...user, isLoggedIn: false };
       setUser(null);
       localStorage.setItem(`user_state_${user.phone}`, JSON.stringify(loggedOut));
+      saveUserToSupabase(loggedOut);
       triggerToast('Sessão encerrada com sucesso.', 'detail');
     }
   };

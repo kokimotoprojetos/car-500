@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Copy, Check, Gift, Award, TrendingUp, HelpCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { UserState } from '../../types';
+import { getReferredUsersFromSupabase } from '../../lib/supabase';
 
 interface InviteTabProps {
   user: UserState;
@@ -16,31 +17,20 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
 
   const [referredUsers, setReferredUsers] = useState<{ phone: string; vipLevel: string; date: string }[]>([]);
 
-  // Scan localStorage on mount for users registered using this referral ID
+  // Fetch referred users from Supabase on mount/inviteCode change
   useEffect(() => {
-    const list: { phone: string; vipLevel: string; date: string }[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('user_state_')) {
-        try {
-          const val = localStorage.getItem(key);
-          if (val) {
-            const parsed = JSON.parse(val);
-            if (parsed.referredBy === inviteCode || parsed.referredBy === user.uid) {
-              list.push({
-                phone: parsed.phone,
-                vipLevel: parsed.vipLevel || 'Bronze',
-                date: new Date(parsed.createdAt || Date.now()).toLocaleDateString('pt-BR')
-              });
-            }
-          }
-        } catch (e) {
-          console.error(e);
-        }
+    let active = true;
+    async function fetchReferrals() {
+      const dbList = await getReferredUsersFromSupabase(inviteCode);
+      if (active) {
+        setReferredUsers(dbList);
       }
     }
-    setReferredUsers(list);
-  }, [inviteCode, user.uid]);
+    fetchReferrals();
+    return () => {
+      active = false;
+    };
+  }, [inviteCode]);
 
   const handleCopyLink = () => {
     navigator.clipboard?.writeText(inviteLink);
