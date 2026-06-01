@@ -117,7 +117,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       {/* Background Image */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img 
-          src="/fundo.png" 
+          src="/fundo2.png" 
           alt="Background" 
           className="w-full h-full object-cover brightness-[0.55]"
         />
