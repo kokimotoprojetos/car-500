@@ -257,6 +257,8 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             </motion.p>
           </AnimatePresence>
         </div>
+      </div>
+
       {/* Balance panel styled identically to screenshot My Balance */}
       <div className="px-4 mt-4">
         <div className="bg-gradient-to-r from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl relative overflow-hidden group">
