@@ -21,6 +21,8 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
+
+  // Welcome bonus modal — shown only the FIRST time (new registration)
   const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
     if (!user || user.balance !== 16.0 || (user.activeInvestments && user.activeInvestments.length > 0)) {
       return false;
@@ -28,6 +30,21 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
     const welcomed = localStorage.getItem(`welcomed_${user.phone}`);
     return welcomed !== 'true';
   });
+
+  // Login welcome modal — shown on EVERY login (once per session)
+  const sessionKey = `login_greeted_${user.phone}`;
+  const alreadyGreetedThisSession = sessionStorage.getItem(sessionKey) === 'true';
+  const [showLoginModal, setShowLoginModal] = useState(() => {
+    // Only show if user already passed the first welcome (welcomed flag set)
+    const welcomed = localStorage.getItem(`welcomed_${user.phone}`);
+    if (welcomed !== 'true') return false; // First-timers see the bonus modal instead
+    return !alreadyGreetedThisSession;
+  });
+
+  const handleCloseLoginModal = () => {
+    sessionStorage.setItem(sessionKey, 'true');
+    setShowLoginModal(false);
+  };
 
   // --- Daily Check-in: validated by date (resets daily) ---
   const checkinKey = `checkin_date_${user.phone}`;
@@ -629,6 +646,67 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
                 </svg>
                 <span className="text-white font-black text-sm tracking-wide">Entrar no Grupo VIP</span>
               </a>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== RECURRING LOGIN WELCOME MODAL ===== */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-6 select-none font-sans">
+            <motion.div
+              initial={{ scale: 0.85, y: 40, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.85, y: 40, opacity: 0 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 320 }}
+              className="w-full max-w-sm bg-slate-900 border border-cyan-500/20 rounded-[32px] p-6 text-center shadow-2xl relative overflow-hidden"
+            >
+              {/* Glow blobs */}
+              <div className="absolute -top-10 -left-10 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              {/* Avatar / Icon */}
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-4 text-4xl">
+                👋
+              </div>
+
+              <h2 className="text-2xl font-black text-slate-100 tracking-tight">
+                Bem-vindo de volta!
+              </h2>
+              <p className="text-xs text-cyan-400 font-bold mt-1 uppercase tracking-widest">
+                Clube VIP 500CAR
+              </p>
+
+              <div className="my-5 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-left space-y-1">
+                <p className="text-[11px] font-semibold text-slate-400 leading-relaxed text-center">
+                  Fique por dentro das novidades, sinais e atualizações exclusivas do clube no nosso grupo VIP do Telegram!
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                {/* Telegram button */}
+                <a
+                  href="https://t.me/+JDFnKWdN7FwyOTFl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-12 bg-[#229ED9] hover:bg-[#1a8bbf] active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#229ED9]/20 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5 shrink-0">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                  <span className="text-white font-black text-sm tracking-wide">Entrar no Grupo VIP</span>
+                </a>
+
+                {/* Access platform button */}
+                <button
+                  onClick={handleCloseLoginModal}
+                  className="w-full h-12 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-black text-sm rounded-xl tracking-wider uppercase active:scale-95 transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
+                >
+                  Acessar Plataforma
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
