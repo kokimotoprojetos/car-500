@@ -37,20 +37,20 @@ export default function App() {
 
   // Auto-login on page load if "Manter conectado" was selected
   useEffect(() => {
-    const persistedEmail = localStorage.getItem('persistent_login_email');
-    if (!persistedEmail) {
+    const persistedPhone = localStorage.getItem('persistent_login_phone');
+    if (!persistedPhone) {
       setAutoLogging(false);
       return;
     }
     // Try to restore session from Supabase, fallback to localStorage cache
-    getUserFromSupabase(persistedEmail).then((dbUser) => {
+    getUserFromSupabase(persistedPhone).then((dbUser) => {
       if (dbUser) {
         dbUser.isLoggedIn = true;
         setUser(dbUser);
-        localStorage.setItem(`user_state_${persistedEmail}`, JSON.stringify(dbUser));
+        localStorage.setItem(`user_state_${persistedPhone}`, JSON.stringify(dbUser));
       } else {
         // Fallback: use cached local state
-        const cached = localStorage.getItem(`user_state_${persistedEmail}`);
+        const cached = localStorage.getItem(`user_state_${persistedPhone}`);
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
@@ -58,8 +58,8 @@ export default function App() {
             setUser(parsed);
           } catch { /* ignore */ }
         } else {
-          // Cache also missing — clear the persisted email
-          localStorage.removeItem('persistent_login_email');
+          // Cache also missing — clear the persisted phone
+          localStorage.removeItem('persistent_login_phone');
         }
       }
       setAutoLogging(false);
@@ -162,7 +162,7 @@ export default function App() {
       const loggedOut = { ...user, isLoggedIn: false };
       setUser(null);
       localStorage.setItem(`user_state_${user.phone}`, JSON.stringify(loggedOut));
-      localStorage.removeItem('persistent_login_email'); // Clear persistent session
+      localStorage.removeItem('persistent_login_phone'); // Clear persistent session
       saveUserToSupabase(loggedOut);
       triggerToast('Sessão encerrada com sucesso.', 'detail');
     }

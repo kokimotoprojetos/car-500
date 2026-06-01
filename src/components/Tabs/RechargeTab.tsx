@@ -49,7 +49,6 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
   const [depositAmount, setDepositAmount] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerCpf, setCustomerCpf] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
   const [processingInvoice, setProcessingInvoice] = useState(false);
   const [activeInvoice, setActiveInvoice] = useState<{
@@ -64,6 +63,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [destAddress, setDestAddress] = useState('');
   const [accountName, setAccountName] = useState('');
+  const [withdrawCpf, setWithdrawCpf] = useState('');
   const [loadingWithdraw, setLoadingWithdraw] = useState(false);
 
   // Sync initial sub-tab if prop changes
@@ -168,7 +168,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       description: `Recarga 500Car VIP - ${user.phone}`,
       customer: {
         name: customerName,
-        email: customerEmail.trim() || `user_${user.phone}@500car.com`,
+        email: `user_${user.phone}@500car.com`,
         phone: user.phone,
         document: {
           type: 'cpf',
@@ -234,6 +234,17 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       return;
     }
 
+    if (!accountName.trim()) {
+      triggerToast('Insira o Nome do Beneficiário.');
+      return;
+    }
+
+    const rawCpf = withdrawCpf.replace(/\D/g, '');
+    if (rawCpf.length !== 11) {
+      triggerToast('Insira um CPF válido para o saque (11 dígitos).');
+      return;
+    }
+
     setLoadingWithdraw(true);
     setTimeout(() => {
       const updated = { ...user };
@@ -249,7 +260,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
         amount: val,
         status: 'pending' as const,
         timestamp: Date.now(),
-        description: `Saque R$${val.toFixed(2)} (taxa 10% = R$${fee.toFixed(2)}) → líquido R$${netAmount.toFixed(2)} — Pix: ${destAddress.substring(0, 5)}...`
+        description: `Saque R$${val.toFixed(2)} (líquido R$${netAmount.toFixed(2)}) — Pix: ${destAddress.substring(0, 5)}... — Beneficiário: ${accountName} - CPF: ${rawCpf}`
       };
 
       updated.withdrawRecords = [newRecord, ...updated.withdrawRecords];
@@ -260,6 +271,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       setWithdrawAmount('');
       setDestAddress('');
       setAccountName('');
+      setWithdrawCpf('');
 
       onNavigate('home');
 
@@ -570,8 +582,8 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                  Nome do Beneficiário (Opcional)
+                <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                  Nome do Beneficiário
                 </label>
                 <input
                   type="text"
@@ -579,6 +591,21 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
                   className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                  CPF do Beneficiário
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 12345678901"
+                  value={withdrawCpf}
+                  onChange={(e) => setWithdrawCpf(e.target.value.replace(/\D/g, '').substring(0, 11))}
+                  className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                  required
                 />
               </div>
 

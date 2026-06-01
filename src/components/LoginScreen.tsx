@@ -19,7 +19,7 @@ const COUNTRY_CODES = [
 
 export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(() => {
@@ -50,9 +50,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     e.preventDefault();
     if (loading) return;
 
-    const emailVal = email.trim().toLowerCase();
-    if (!emailVal || !emailVal.endsWith('@gmail.com')) {
-      triggerToast('Insira um e-mail do Gmail válido (@gmail.com).');
+    const phoneVal = phone.replace(/\D/g, '');
+    if (phoneVal.length < 10 || phoneVal.length > 11) {
+      triggerToast('Insira um número de telefone válido com DDD (Ex: 11999999999).');
       return;
     }
     if (!password || password.trim().length < 4) {
@@ -60,16 +60,16 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       return;
     }
 
-    const userKey = `user_state_${emailVal}`;
+    const userKey = `user_state_${phoneVal}`;
 
     setLoading(true);
     try {
-      // Check database first using the email address
-      const existingDb = await getUserFromSupabase(emailVal);
+      // Check database first using the phone number
+      const existingDb = await getUserFromSupabase(phoneVal);
 
       if (isRegistering) {
         if (existingDb) {
-          triggerToast('Este e-mail já está registrado.');
+          triggerToast('Este número de telefone já está registrado.');
           setLoading(false);
           return;
         }
@@ -79,7 +79,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         const hashedPassword = await hashPassword(password);
         const initialUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-          phone: emailVal,
+          phone: phoneVal,
           isLoggedIn: false,
           balance: 16.0,
           jobDeposit: 0.0,
@@ -107,7 +107,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       } else {
         // Login flow
         if (!existingDb) {
-          triggerToast('Gmail não encontrado. Registre-se para poder prosseguir.');
+          triggerToast('Telefone não encontrado. Registre-se para poder prosseguir.');
           setLoading(false);
           return;
         } else {
@@ -136,15 +136,15 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           localStorage.setItem(userKey, JSON.stringify(existingDb));
           // Handle persistent login preference
           if (keepLoggedIn) {
-            localStorage.setItem('persistent_login_email', emailVal);
+            localStorage.setItem('persistent_login_phone', phoneVal);
             localStorage.setItem('keep_logged_in_pref', 'true');
           } else {
-            localStorage.removeItem('persistent_login_email');
+            localStorage.removeItem('persistent_login_phone');
             localStorage.setItem('keep_logged_in_pref', 'false');
           }
           triggerToast('Login efetuado com sucesso!', 'success');
           setTimeout(() => {
-            onLoginSuccess(emailVal);
+            onLoginSuccess(phoneVal);
           }, 800);
         }
       }
@@ -190,20 +190,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       <div className="relative z-10 mt-2 mb-auto pt-2">
         <form onSubmit={handleAuth} className="space-y-4">
           
-          {/* Gmail email input */}
+          {/* Phone number input */}
           <div className="space-y-1.5">
             <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-              E-mail do Gmail / Gmail Address
+              Número de Telefone / Phone Number
             </label>
             <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
               <span className="text-xs text-slate-500 uppercase tracking-wider font-bold mr-3 shrink-0">
-                Gmail
+                Telefone
               </span>
               <input
-                type="email"
-                placeholder="usuario@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="tel"
+                placeholder="(DDD) 99999-9999"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="flex-1 bg-transparent border-none text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-0 leading-none h-full self-center"
                 required
               />
