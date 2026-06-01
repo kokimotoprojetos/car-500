@@ -288,6 +288,66 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         </div>
       </div>
 
+      {/* Grid of Quick Actions buttons (Coupon, Recharge, Withdraw, Invite, APP) */}
+      <div className="px-4 mt-4">
+        <div className="grid grid-cols-5 gap-1.5">
+          <button
+            onClick={() => setShowCouponModal(true)}
+            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Gift size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-300">Cupom</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('recharge')}
+            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Wallet size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-300">Recarga</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate('withdraw')}
+            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <ArrowDownCircle size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-300">Saque</span>
+          </button>
+
+          <button
+            onClick={() => {
+              // Copy custom link simulation
+              navigator.clipboard?.writeText(window.location.href);
+              triggerToast('Link copiado! Bônus de Indicação: 1º Nível: 23% | 2º Nível: 4% | 3º Nível: 1%', 'success');
+            }}
+            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Users size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-300">Convidar</span>
+          </button>
+
+          <button
+            onClick={() => {
+              triggerToast('Download do aplicativo iniciado na máquina virtual!', 'success');
+            }}
+            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <Download size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-300">Aplicativo</span>
+          </button>
+        </div>
+      </div>
 
       {/* Fleet Section (All cars directly on home screen) */}
       <div className="p-4 space-y-4">
@@ -369,68 +429,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             </div>
           );
         })}
-      </div>
-
-
-      {/* Grid of Quick Actions buttons (Coupon, Recharge, Withdraw, Invite, APP) */}
-      <div className="px-4">
-        <div className="grid grid-cols-5 gap-1.5">
-          <button
-            onClick={() => setShowCouponModal(true)}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Gift size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Cupom</span>
-          </button>
-
-          <button
-            onClick={() => onNavigate('recharge')}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Wallet size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Recarga</span>
-          </button>
-
-          <button
-            onClick={() => onNavigate('withdraw')}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <ArrowDownCircle size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Saque</span>
-          </button>
-
-          <button
-            onClick={() => {
-              // Copy custom link simulation
-              navigator.clipboard?.writeText(window.location.href);
-              triggerToast('Link copiado! Bônus de Indicação: 1º Nível: 23% | 2º Nível: 4% | 3º Nível: 1%', 'success');
-            }}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Users size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Convidar</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerToast('Download do aplicativo iniciado na máquina virtual!', 'success');
-            }}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Download size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Aplicativo</span>
-          </button>
-        </div>
       </div>
 
       {/* Primary Side-by-side Action row: Team Awards & Check-in */}
