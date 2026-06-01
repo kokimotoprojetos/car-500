@@ -25,7 +25,7 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
     }
 
     if (val < 10.0) {
-      triggerToast('O valor mínimo para saques simulados é de R$10,00.');
+      triggerToast('O valor mínimo para saques é de R$10,00.');
       return;
     }
 
@@ -194,7 +194,7 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
             <HelpCircle size={14} className="text-orange-400" /> Diretrizes de Retirada
           </h4>
           <ol className="list-decimal pl-4 space-y-2 text-[10px] text-slate-500 leading-relaxed font-semibold">
-            <li>Os saques são simulados de forma instantânea para a chave Pix informada.</li>
+            <li>Os saques são processados de forma instantânea para a chave Pix informada.</li>
             <li>Taxa fixa de 10% aplicada sobre o valor do saque.</li>
             <li>Horário de Retiradas: Funcionamento 24h por dia, 7 dias por semana.</li>
             <li>Valor mínimo para solicitação de saques: R$10,00.</li>
