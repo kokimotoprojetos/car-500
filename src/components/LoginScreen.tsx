@@ -146,7 +146,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       </div>
 
       {/* Form Credentials layout */}
-      <div className="relative z-10 my-auto pt-6">
+      <div className="relative z-10 mt-6 mb-auto pt-6">
         <form onSubmit={handleAuth} className="space-y-4">
           
           {/* Phone input with country code */}
