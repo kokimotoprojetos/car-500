@@ -257,7 +257,35 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             </motion.p>
           </AnimatePresence>
         </div>
+      {/* Balance panel styled identically to screenshot My Balance */}
+      <div className="px-4 mt-4">
+        <div className="bg-gradient-to-r from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <span className="text-[10px] uppercase tracking-widest text-[#06b6d4] font-bold">Meu Saldo / Wallet</span>
+              <h3 className="text-xl font-black text-slate-100 tracking-tight mt-1">Saldo de Investimento</h3>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-400">
+              <ShieldCheck size={16} className="text-cyan-400" />
+            </div>
+          </div>
+
+          <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
+            <span className="text-3xl font-black text-cyan-400 font-mono">
+              ${user.balance.toFixed(2)}
+            </span>
+            <button
+              onClick={() => onNavigate('recharge')}
+              className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400 border border-cyan-400/30 px-3.5 py-1.5 rounded-xl transition-all shadow-md shrink-0 active:scale-95"
+            >
+              Depositar
+            </button>
+          </div>
+        </div>
       </div>
+
 
       {/* Fleet Section (All cars directly on home screen) */}
       <div className="p-4 space-y-4">
@@ -465,34 +493,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         </div>
       </div>
 
-      {/* Balance panel styled identically to screenshot My Balance */}
-      <div className="px-4 mt-4">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-          
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <span className="text-[10px] uppercase tracking-widest text-[#06b6d4] font-bold">Meu Saldo / Wallet</span>
-              <h3 className="text-xl font-black text-slate-100 tracking-tight mt-1">Saldo de Investimento</h3>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-400">
-              <ShieldCheck size={16} className="text-cyan-400" />
-            </div>
-          </div>
-
-          <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
-            <span className="text-3xl font-black text-cyan-400 font-mono">
-              ${user.balance.toFixed(2)}
-            </span>
-            <button
-              onClick={() => onNavigate('recharge')}
-              className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400 border border-cyan-400/30 px-3.5 py-1.5 rounded-xl transition-all shadow-md shrink-0 active:scale-95"
-            >
-              Depositar
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Interactive Coupon Modal */}
       <AnimatePresence>
