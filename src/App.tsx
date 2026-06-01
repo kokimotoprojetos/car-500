@@ -25,6 +25,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('home');
   const [isLiveChatOpen, setIsLiveChatOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; status: 'success' | 'detail' } | null>(null);
+  const [autoLogging, setAutoLogging] = useState(true); // Prevents flash of login screen on refresh
 
   // Trigger brief floating notifications
   const triggerToast = (msg: string, status: 'success' | 'detail' = 'detail') => {
@@ -33,6 +34,40 @@ export default function App() {
       setToast(null);
     }, 3000);
   };
+
+  // Auto-login on page load if "Manter conectado" was selected
+  useEffect(() => {
+    const persistedEmail = localStorage.getItem('persistent_login_email');
+    if (!persistedEmail) {
+      setAutoLogging(false);
+      return;
+    }
+    // Try to restore session from Supabase, fallback to localStorage cache
+    getUserFromSupabase(persistedEmail).then((dbUser) => {
+      if (dbUser) {
+        dbUser.isLoggedIn = true;
+        setUser(dbUser);
+        localStorage.setItem(`user_state_${persistedEmail}`, JSON.stringify(dbUser));
+      } else {
+        // Fallback: use cached local state
+        const cached = localStorage.getItem(`user_state_${persistedEmail}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            parsed.isLoggedIn = true;
+            setUser(parsed);
+          } catch { /* ignore */ }
+        } else {
+          // Cache also missing — clear the persisted email
+          localStorage.removeItem('persistent_login_email');
+        }
+      }
+      setAutoLogging(false);
+    }).catch(() => {
+      setAutoLogging(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Real-time live earnings ticker running globally
   useEffect(() => {
@@ -127,6 +162,7 @@ export default function App() {
       const loggedOut = { ...user, isLoggedIn: false };
       setUser(null);
       localStorage.setItem(`user_state_${user.phone}`, JSON.stringify(loggedOut));
+      localStorage.removeItem('persistent_login_email'); // Clear persistent session
       saveUserToSupabase(loggedOut);
       triggerToast('Sessão encerrada com sucesso.', 'detail');
     }
@@ -208,6 +244,20 @@ export default function App() {
   // Render admin panel for secret route (after all hooks)
   if (isAdminRoute) {
     return <AdminPanel />;
+  }
+
+  // Show loading spinner while auto-login check runs (prevents flash of login screen)
+  if (autoLogging) {
+    return (
+      <MobileFrame>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#070b19] gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Carregando sessão...</p>
+        </div>
+      </MobileFrame>
+    );
   }
 
   return (

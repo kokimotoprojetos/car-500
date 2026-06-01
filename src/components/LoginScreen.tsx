@@ -22,7 +22,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [keepLoggedIn, setKeepLoggedIn] = useState(() => {
+    // Remember the checkbox state from last time
+    return localStorage.getItem('keep_logged_in_pref') === 'true';
+  });
+
   // Custom alert / notification message
   const [notification, setNotification] = useState<{ status: 'success' | 'detail'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -130,6 +134,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             return;
           }
           localStorage.setItem(userKey, JSON.stringify(existingDb));
+          // Handle persistent login preference
+          if (keepLoggedIn) {
+            localStorage.setItem('persistent_login_email', emailVal);
+            localStorage.setItem('keep_logged_in_pref', 'true');
+          } else {
+            localStorage.removeItem('persistent_login_email');
+            localStorage.setItem('keep_logged_in_pref', 'false');
+          }
           triggerToast('Login efetuado com sucesso!', 'success');
           setTimeout(() => {
             onLoginSuccess(emailVal);
@@ -224,6 +236,36 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               </button>
             </div>
           </div>
+
+          {/* Manter conectado checkbox - only shown in login mode */}
+          {!isRegistering && (
+            <div className="flex items-center gap-2.5 px-1">
+              <button
+                type="button"
+                id="keep-logged-in-toggle"
+                onClick={() => setKeepLoggedIn(v => !v)}
+                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
+                  keepLoggedIn
+                    ? 'bg-cyan-500 border-cyan-500'
+                    : 'bg-transparent border-slate-600 hover:border-slate-400'
+                }`}
+              >
+                {keepLoggedIn && (
+                  <svg viewBox="0 0 12 10" fill="none" className="w-3 h-3">
+                    <path d="M1 5l3.5 3.5L11 1" stroke="#070b19" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+              <label
+                htmlFor="keep-logged-in-toggle"
+                className="text-xs text-slate-300 font-semibold cursor-pointer select-none"
+                onClick={() => setKeepLoggedIn(v => !v)}
+              >
+                Manter conectado
+              </label>
+              <span className="ml-auto text-[10px] text-slate-600 font-semibold">Lembrar conta</span>
+            </div>
+          )}
 
           <div className="pt-2">
             <button
