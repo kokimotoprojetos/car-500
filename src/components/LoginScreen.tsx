@@ -243,15 +243,21 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </div>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-5 text-center">
           <button
             type="button"
             onClick={() => setIsRegistering(!isRegistering)}
-            className="text-sm font-semibold text-slate-400 hover:text-slate-200 hover:underline transition-all"
+            className="w-full text-xs font-black text-slate-100 hover:text-white transition-all bg-slate-950/90 border border-slate-800 py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
           >
-            {isRegistering
-              ? 'Já possui uma conta? Faça Login'
-              : 'Não tem cadastro? Clique aqui para Registrar'}
+            {isRegistering ? (
+              <span>
+                Já possui uma conta? <span className="text-cyan-400 underline">Fazer Login</span>
+              </span>
+            ) : (
+              <span>
+                Não tem cadastro? <span className="text-cyan-400 underline">Registrar Grátis</span>
+              </span>
+            )}
           </button>
         </div>
       </div>
