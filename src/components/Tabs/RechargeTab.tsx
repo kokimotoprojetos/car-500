@@ -11,21 +11,53 @@ interface RechargeTabProps {
 }
 
 const METHODS = [
-  { id: 'usdt', label: 'USDT TRC20 (Recomendado)', description: 'Simulação de depósitos com rede de blockchain TRON' },
-  { id: 'pix', label: 'PIX Instantâneo', description: 'Simulação em Reais Brasileiros (Cotação 1 USDT = R$ 5,00)' }
+  { id: 'pix', label: 'PIX Instantâneo (LytronPay)', description: 'Pagamento instantâneo via Pix com confirmação automática' },
+  { id: 'usdt', label: 'USDT TRC20', description: 'Blockchain Tron' }
 ];
 
-const PRESETS = [1000, 2000, 5000, 15000, 30000, 45000];
+const PRESETS = [50, 100, 200, 300, 500, 1000];
+
+const LYTRON_API_URL = 'https://api.lytronpay.com/api/v1';
+const API_KEY = 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
+const SECRET_KEY = 'sk_live_' + 'PTWk8U1d7uPv1rCmF1n0Tn0BxU4U90ZKh17E25O9G9pi6RQ3';
+
+async function generateHmacSignature(rawBody: string, secretKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secretKey);
+  const messageData = encoder.encode(rawBody);
+
+  const cryptoKey = await window.crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: { name: "SHA-256" } },
+    false,
+    ["sign"]
+  );
+
+  const signature = await window.crypto.subtle.sign(
+    "HMAC",
+    cryptoKey,
+    messageData
+  );
+
+  const hashArray = Array.from(new Uint8Array(signature));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
 
 export default function RechargeTab({ user, onUpdateUser, triggerToast, onNavigate }: RechargeTabProps) {
-  const [method, setMethod] = useState('usdt');
+  const [method, setMethod] = useState('pix');
   const [showMethodDrop, setShowMethodDrop] = useState(false);
   const [amount, setAmount] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerCpf, setCustomerCpf] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
 
   // Active payment gateway screen state indicators
   const [processingInvoice, setProcessingInvoice] = useState(false);
   const [activeInvoice, setActiveInvoice] = useState<{
+    txid?: string;
     address: string;
     amount: number;
     method: string;
@@ -50,11 +82,61 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
     return () => clearInterval(interval);
   }, [activeInvoice]);
 
+  // Poll for payment success status from LytronPay API
+  useEffect(() => {
+    if (!activeInvoice || activeInvoice.method !== 'PIX' || !activeInvoice.txid) return;
+
+    let timer: NodeJS.Timeout;
+    
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(`${LYTRON_API_URL}/charges/${activeInvoice.txid}`, {
+          method: 'GET',
+          headers: {
+            'Api-Access-Key': API_KEY
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const status = (data.status || '').toLowerCase();
+          if (status === 'paid' || status === 'completed' || status === 'approved' || data.paidAt || data.paid_at) {
+            // Payment successful! Credit balance.
+            const finalAmount = activeInvoice.amount;
+            onUpdateUser((prevUser) => {
+              if (!prevUser) return prevUser;
+              const updated = { ...prevUser };
+              updated.balance += finalAmount;
+              const record = {
+                id: `recharge_${Date.now()}`,
+                type: 'recharge' as const,
+                amount: finalAmount,
+                status: 'success' as const,
+                timestamp: Date.now(),
+                description: `Recarga via LytronPay PIX (Auto-Confirmado)`
+              };
+              updated.rechargeRecords = [record, ...updated.rechargeRecords];
+              return updated;
+            });
+            triggerToast(`Pagamento de R$${finalAmount.toFixed(2)} recebido com sucesso via LytronPay!`, 'success');
+            setActiveInvoice(null);
+            setAmount('');
+            onNavigate('home');
+          }
+        }
+      } catch (err) {
+        console.error('Error polling payment status:', err);
+      }
+    };
+
+    timer = setInterval(checkStatus, 5000);
+    return () => clearInterval(timer);
+  }, [activeInvoice?.txid]);
+
   const handlePresetSelect = (val: number) => {
     setAmount(val.toString());
   };
 
-  const handleSubmitRecharge = (e: React.FormEvent) => {
+  const handleSubmitRecharge = async (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
     if (isNaN(val) || val <= 0) {
@@ -63,20 +145,77 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
     }
 
     setProcessingInvoice(true);
-    setTimeout(() => {
-      // Setup dynamic mock payment details
-      const mockAddress = method === 'usdt'
-        ? 'TYLStSimulatedRechargeAddressTrc20X99XxxYyZz123'
-        : '00020101021226830014br.gov.bcb.pix2561500carpremiumrechargegatewaysimulatedpixkey';
-      
-      setActiveInvoice({
-        address: mockAddress,
+
+    if (method === 'pix') {
+      const rawCpf = customerCpf.replace(/\D/g, '');
+      if (rawCpf.length !== 11) {
+        triggerToast('Por favor, insira um CPF válido com 11 dígitos.');
+        setProcessingInvoice(false);
+        return;
+      }
+      if (!customerName.trim()) {
+        triggerToast('Por favor, insira seu Nome Completo.');
+        setProcessingInvoice(false);
+        return;
+      }
+
+      const payload = {
         amount: val,
-        method: method === 'usdt' ? 'USDT TRC20' : 'PIX',
-        timeLeft: 300 // 5 minutes standard
-      });
-      setProcessingInvoice(false);
-    }, 800);
+        description: `Recarga 500Car VIP - ${user.phone}`,
+        customer: {
+          name: customerName,
+          email: customerEmail.trim() || `user_${user.phone}@500car.com`,
+          phone: user.phone,
+          document: {
+            type: 'cpf',
+            number: rawCpf
+          }
+        }
+      };
+
+      try {
+        const rawBody = JSON.stringify(payload);
+        const signature = await generateHmacSignature(rawBody, SECRET_KEY);
+
+        const response = await fetch(`${LYTRON_API_URL}/charges`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Access-Key': API_KEY,
+            'Transaction-Hash': signature
+          },
+          body: rawBody
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Erro ao gerar Pix da LytronPay');
+        }
+
+        setActiveInvoice({
+          txid: data.txid || `tx_${Date.now()}`,
+          address: data.copyPaste || data.qrcode || '',
+          amount: val,
+          method: 'PIX',
+          timeLeft: 600 // 10 minutes for Pix
+        });
+      } catch (err: any) {
+        triggerToast(`Falha na integração LytronPay: ${err.message || err}`);
+      } finally {
+        setProcessingInvoice(false);
+      }
+    } else {
+      // Mock USDT TRC20 Invoice
+      setTimeout(() => {
+        setActiveInvoice({
+          address: 'TYLStSimulatedRechargeAddressTrc20X99XxxYyZz123',
+          amount: val,
+          method: 'USDT TRC20',
+          timeLeft: 300 // 5 minutes standard
+        });
+        setProcessingInvoice(false);
+      }, 800);
+    }
   };
 
   // Simulate payment confirmation button clicked by the user
@@ -109,7 +248,8 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
   const handleCopyLink = (text: string) => {
     navigator.clipboard?.writeText(text);
     setCopiedKey(true);
-    triggerToast('Chave de pagamento simulado copiada!', 'success');
+    const isPix = activeInvoice?.method === 'PIX';
+    triggerToast(isPix ? 'Código Pix copiado com sucesso!' : 'Endereço copiado com sucesso!', 'success');
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
@@ -194,11 +334,11 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               {/* Amount text input fields */}
               <div className="space-y-1.5">
                 <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                  Valor Recarga / Amount (USDT)
+                  Valor Recarga / Amount
                 </label>
                 <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
                   <span className="text-slate-500 font-bold text-sm mr-2 shrink-0">
-                    $
+                    R$
                   </span>
                   <input
                     type="number"
@@ -211,6 +351,52 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                   <Wallet size={16} className="text-slate-500 shrink-0" />
                 </div>
               </div>
+
+              {/* Extra PIX details fields */}
+              {method === 'pix' && (
+                <div className="space-y-4 pt-2 border-t border-slate-900">
+                  <div className="space-y-1.5">
+                    <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                      Nome Completo do Pagador
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nome impresso no Pix"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                      CPF do Pagador (Apenas números)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ex: 12345678901"
+                      value={customerCpf}
+                      onChange={(e) => setCustomerCpf(e.target.value.replace(/\D/g, '').substring(0, 11))}
+                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs uppercase tracking-widest text-slate-500 font-bold block">
+                      E-mail (Opcional)
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="seuemail@exemplo.com"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Preset grids matching the specific screenshots */}
               <div className="grid grid-cols-3 gap-2">
@@ -276,9 +462,17 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 <span className="text-[10px] text-slate-500 font-bold block mt-1">({activeInvoice.method})</span>
               </div>
 
-              {/* Simulated QR Code representation */}
+              {/* QR Code representation */}
               <div className="w-36 h-36 bg-white rounded-xl p-2 mx-auto flex items-center justify-center shadow-lg relative group">
-                <QrCode size={130} className="text-slate-950" />
+                {activeInvoice.address ? (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(activeInvoice.address)}&size=150x150`}
+                    alt="QR Code de Pagamento"
+                    className="w-32 h-32 object-contain"
+                  />
+                ) : (
+                  <QrCode size={130} className="text-slate-950" />
+                )}
                 <div className="absolute inset-0 bg-slate-950/5 rounded-xl pointer-events-none" />
               </div>
 
@@ -291,7 +485,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               {/* Copy Address Row */}
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase text-slate-500 font-bold block">
-                  Chave ou Endereço do Destinatário
+                  {activeInvoice.method === 'PIX' ? 'Código Pix Copia e Cola' : 'Chave ou Endereço do Destinatário'}
                 </label>
                 <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-3 gap-2">
                   <span className="flex-1 text-[10px] text-slate-400 font-mono select-all truncate">
