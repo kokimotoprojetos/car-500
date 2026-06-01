@@ -6,7 +6,7 @@ interface MobileFrameProps {
 
 export default function MobileFrame({ children }: MobileFrameProps) {
   return (
-    <div className="h-screen max-h-screen bg-[#020617] text-slate-100 flex flex-col font-sans overflow-hidden relative">
+    <div className="h-[100dvh] max-h-[100dvh] bg-[#020617] text-slate-100 flex flex-col font-sans overflow-hidden relative">
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#06b6d4]/5 opacity-50 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#3b82f6]/5 opacity-50 blur-[120px] rounded-full pointer-events-none" />
