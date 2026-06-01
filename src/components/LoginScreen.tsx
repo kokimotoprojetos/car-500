@@ -75,10 +75,11 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         const initialUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
           phone: emailVal, // we store email inside the existing primary key/phone field
+          isLoggedIn: false,
           balance: 16.0,
           jobDeposit: 0.0,
           totalWithdrawn: 0.0,
-          vipLevel: 'Bronze',
+          vipLevel: 'Bronze' as const,
           checkedInToday: false,
           rechargeRecords: [],
           withdrawRecords: [],

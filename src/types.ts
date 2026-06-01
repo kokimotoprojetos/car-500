@@ -43,4 +43,6 @@ export interface UserState {
   withdrawRecords: TransactionRecord[];
   activeInvestments: ActiveInvestment[];
   passwordHash: string;
+  referredBy?: string;
+  createdAt?: number;
 }

@@ -109,21 +109,18 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
           if (status === 'paid' || status === 'completed' || status === 'approved' || status === 'pago' || data.paidAt || data.paid_at) {
             // Payment successful! Credit balance.
             const finalAmount = activeInvoice.amount;
-            onUpdateUser((prevUser) => {
-              if (!prevUser) return prevUser;
-              const updated = { ...prevUser };
-              updated.balance += finalAmount;
-              const record = {
-                id: `recharge_${Date.now()}`,
-                type: 'recharge' as const,
-                amount: finalAmount,
-                status: 'success' as const,
-                timestamp: Date.now(),
-                description: `Recarga via LytronPay PIX (Auto-Confirmado)`
-              };
-              updated.rechargeRecords = [record, ...updated.rechargeRecords];
-              return updated;
-            });
+            const updated = { ...user };
+            updated.balance += finalAmount;
+            const record = {
+              id: `recharge_${Date.now()}`,
+              type: 'recharge' as const,
+              amount: finalAmount,
+              status: 'success' as const,
+              timestamp: Date.now(),
+              description: `Recarga via LytronPay PIX (Auto-Confirmado)`
+            };
+            updated.rechargeRecords = [record, ...updated.rechargeRecords];
+            onUpdateUser(updated);
             triggerToast(`Pagamento de R$${finalAmount.toFixed(2)} recebido com sucesso via LytronPay!`, 'success');
             setActiveInvoice(null);
             setDepositAmount('');
