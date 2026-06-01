@@ -119,9 +119,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <img 
           src="/fundo2.png" 
           alt="Background" 
-          className="w-full h-full object-cover object-top brightness-[0.95]"
+          className="w-full h-full object-cover object-top"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/10 via-slate-950/30 to-slate-950/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/5 via-slate-950/20 to-slate-950/45" />
       </div>
 
       {/* Decorative luxury neon lights */}
@@ -132,12 +132,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       <div className="relative z-10 text-center pt-4">
         <div className="flex justify-between items-start mb-4">
           <div className="text-left">
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
-              Premium Cars
+            <h1 className="text-3xl font-black tracking-widest bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent uppercase">
+              500car invest
             </h1>
-            <p className="text-sm text-cyan-400 font-medium tracking-wide mt-1">
-              Enjoy The Luxury
-            </p>
           </div>
           <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-500 shadow-md">
             <span className="text-lg">🌐</span>
@@ -146,7 +143,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       </div>
 
       {/* Form Credentials layout */}
-      <div className="relative z-10 mt-6 mb-auto pt-6">
+      <div className="relative z-10 mt-2 mb-auto pt-2">
         <form onSubmit={handleAuth} className="space-y-4">
           
           {/* Phone input with country code */}
