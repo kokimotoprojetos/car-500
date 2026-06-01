@@ -113,10 +113,20 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between py-6 px-6 relative bg-slate-950 overflow-y-auto">
+    <div className="flex-1 flex flex-col justify-between py-6 px-6 relative overflow-y-auto">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <img 
+          src="/fundo.png" 
+          alt="Background" 
+          className="w-full h-full object-cover brightness-[0.22]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/80 to-slate-950" />
+      </div>
+
       {/* Decorative luxury neon lights */}
-      <div className="absolute top-10 left-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/3 right-10 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-10 left-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute bottom-1/3 right-10 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none z-0" />
 
       {/* Header section */}
       <div className="relative z-10 text-center pt-4">
@@ -131,27 +141,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </div>
           <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-amber-500 shadow-md">
             <span className="text-lg">🌐</span>
-          </div>
-        </div>
-
-        {/* Beautiful Sports Car Spotlight Frame */}
-        <div className="w-full h-44 rounded-2xl overflow-hidden border border-slate-800 shadow-inner relative mt-2 group">
-          <img 
-            src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&q=80&w=600" 
-            alt="Dream Supercar" 
-            className="w-full h-full object-cover brightness-75 scale-105 group-hover:scale-100 transition-all duration-700"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/20" />
-          
-          {/* Neon Floating Logo overlay */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-black/80 backdrop-blur-md rounded-full border border-cyan-500/30">
-              <Car size={16} className="text-cyan-400 animate-pulse" />
-              <span className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent tracking-widest uppercase">
-                500CAR
-              </span>
-            </div>
           </div>
         </div>
       </div>
