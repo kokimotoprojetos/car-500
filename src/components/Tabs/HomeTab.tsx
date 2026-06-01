@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Gift, Wallet, ArrowDownCircle, Users, Download, Award, Calendar, ChevronRight, Play, Coins, ShieldCheck } from 'lucide-react';
+import { Gift, Wallet, ArrowDownCircle, Users, Download, Award, Calendar, ChevronRight, Play, Coins, ShieldCheck, Car, Hourglass, ShoppingBag, ShieldAlert } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
-import { UserState } from '../../types';
-import { ROULETTE_SECTORS } from '../../data';
+import { UserState, InvestmentPackage } from '../../types';
+import { ROULETTE_SECTORS, CAR_PACKAGES } from '../../data';
+
 
 interface HomeTabProps {
   user: UserState;
@@ -16,6 +17,54 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [activeWin, setActiveWin] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
+
+  const handleBuyPackage = () => {
+    if (!selectedProduct) return;
+
+    if (user.balance < selectedProduct.price) {
+      triggerToast(`Saldo insuficiente para comprar ${selectedProduct.name}. O valor é de $${selectedProduct.price.toFixed(2)}.`);
+      setSelectedProduct(null);
+      onNavigate('recharge');
+      return;
+    }
+
+    const updated = { ...user };
+    updated.balance -= selectedProduct.price;
+    updated.jobDeposit += selectedProduct.price;
+
+    const newInvestment = {
+      id: `inv_${Date.now()}`,
+      packageId: selectedProduct.id,
+      name: selectedProduct.name,
+      dailyProfit: selectedProduct.dailyProfit,
+      totalProfit: selectedProduct.totalProfit,
+      validityDays: selectedProduct.validityDays,
+      price: selectedProduct.price,
+      image: selectedProduct.image,
+      boughtAt: Date.now(),
+      accumulated: 0
+    };
+
+    updated.activeInvestments = [newInvestment, ...updated.activeInvestments];
+
+    updated.rechargeRecords = [
+      {
+        id: `buy_${Date.now()}`,
+        type: 'investment' as const,
+        amount: selectedProduct.price,
+        status: 'success' as const,
+        timestamp: Date.now(),
+        description: `Adquiriu veículo VIP: ${selectedProduct.name}`
+      },
+      ...updated.rechargeRecords
+    ];
+
+    onUpdateUser(updated);
+    triggerToast(`${selectedProduct.name} ativado com sucesso! Iniciando mineração de lucros.`, 'success');
+    setSelectedProduct(null);
+  };
+
   
   // Motion controller for the roulette wheel
   const wheelControls = useAnimation();
@@ -210,94 +259,89 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         </div>
       </div>
 
-      {/* Main Wheel Container ("Spin & Win") */}
-      <div className="p-4">
-        <div className="bg-gradient-to-b from-slate-900 to-slate-950 rounded-3xl border border-slate-800 p-4 shadow-xl relative overflow-hidden flex flex-col items-center">
-          {/* Grid Background graphics */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none" />
-
-          {/* Top banner detailing spin rewards */}
-          <div className="text-center mb-4 z-10">
-            <h2 className="text-lg font-black bg-gradient-to-r from-cyan-400 to-amber-400 bg-clip-text text-transparent uppercase tracking-tight">
-              Spin and Win
-            </h2>
-            <p className="text-xs text-slate-300 font-semibold mt-0.5">
-              Your Chance to Win Big
-            </p>
-          </div>
-
-          {/* CSS/Canvas styled Spin Wheel container with pointer */}
-          <div className="w-60 h-60 rounded-full border-4 border-slate-800 shadow-2xl relative flex items-center justify-center p-2 mb-4 bg-slate-950 z-10">
-            {/* LED Indicator Lights on outline */}
-            <div className="absolute inset-0 rounded-full border border-dashed border-cyan-400/30 animate-[spin_40s_linear_infinite]" />
-
-            {/* Needle indicator element pointing downwards */}
-            <div className="absolute top-1 left-1/2 -translate-x-1/2 w-6 h-8 z-30 drop-shadow-lg flex flex-col items-center">
-              <div className="w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-md relative" />
-              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-amber-500 -mt-1" />
-            </div>
-
-            {/* Rotating central body */}
-            <motion.div
-              animate={wheelControls}
-              className="w-full h-full rounded-full relative overflow-hidden bg-slate-900 border-2 border-slate-700 select-none"
-              style={{ transformOrigin: 'center' }}
-            >
-              {ROULETTE_SECTORS.map((sector, index) => {
-                const rotation = index * (360 / ROULETTE_SECTORS.length);
-                const skew = 90 - (360 / ROULETTE_SECTORS.length);
-                return (
-                  <div
-                    key={index}
-                    className="absolute top-0 right-0 w-1/2 h-1/2 origin-bottom-left"
-                    style={{
-                      transform: `rotate(${rotation}deg) skewY(${skew}deg)`,
-                      backgroundColor: sector.color
-                    }}
-                  />
-                );
-              })}
-
-              {/* Text overlays matching sectors rotated correctly */}
-              {ROULETTE_SECTORS.map((sector, index) => {
-                const rotation = (index * 45) + 22.5;
-                return (
-                  <div
-                    key={`txt_${index}`}
-                    className="absolute top-0 bottom-0 left-0 right-0 flex justify-center items-start pt-3 pointer-events-none z-10"
-                    style={{ transform: `rotate(${rotation}deg)` }}
-                  >
-                    <span className="text-[9px] font-black tracking-tighter text-white bg-slate-900/40 px-1 rounded-full uppercase leading-none text-center">
-                      {sector.name}
-                      <span className="block text-[8px] text-amber-400 mt-0.5">${sector.value}</span>
-                    </span>
-                  </div>
-                );
-              })}
-
-              {/* Center point cap */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-950 border-2 border-slate-800 flex items-center justify-center z-20 shadow-md">
-                <Coins size={14} className="text-amber-400 animate-bounce" />
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Action trigger & info */}
-          <div className="w-full text-center z-10">
-            <p className="text-[10px] text-slate-400 font-bold mb-2">
-              Somente $15 por giro ou use Giro Grátis ({user.spinTurns} restantes)
-            </p>
-            <button
-              onClick={handleSpin}
-              disabled={spinning}
-              className="w-full max-w-xs h-11 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-extrabold text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              <Play size={13} className="fill-slate-950" />
-              {spinning ? 'Girando...' : 'Iniciar Giro!'}
-            </button>
-          </div>
+      {/* Fleet Section (All cars directly on home screen) */}
+      <div className="p-4 space-y-4">
+        <div className="text-left mb-2 px-1">
+          <h2 className="text-lg font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent uppercase tracking-tight flex items-center gap-2">
+            <Car size={20} className="text-cyan-400" />
+            Nossa Frota VIP
+          </h2>
+          <p className="text-xs text-slate-400 font-semibold mt-0.5">
+            Selecione um veículo superesportivo para obter rendimentos diários simulados
+          </p>
         </div>
+
+        {CAR_PACKAGES.map((pkg) => {
+          const alreadyOwns = user.activeInvestments?.filter((i) => i.packageId === pkg.id).length || 0;
+
+          return (
+            <div
+              key={pkg.id}
+              className="bg-gradient-to-b from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-4 relative overflow-hidden shadow-lg group"
+            >
+              <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan-500/10 transition-all duration-300" />
+
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-base font-black text-slate-100 tracking-tight">{pkg.name}</h3>
+                    {alreadyOwns > 0 && (
+                      <span className="text-[9px] font-bold bg-cyan-950 border border-cyan-500/30 text-cyan-400 px-2 py-0.5 rounded-full">
+                        Ativo ({alreadyOwns})
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 text-slate-400 font-bold">
+                    <div className="text-xs flex items-center justify-between border-b border-slate-800/40 pb-1">
+                      <span>Rendimento Diário</span>
+                      <span className="text-cyan-400 font-mono text-xs">+${pkg.dailyProfit.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs flex items-center justify-between border-b border-slate-800/40 pb-1">
+                      <span>Rendimento Total</span>
+                      <span className="text-slate-300 font-mono text-xs">${pkg.totalProfit.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs flex items-center justify-between pb-1">
+                      <span>Período de Validade</span>
+                      <span className="text-slate-300 text-xs flex items-center gap-1">
+                        <Hourglass size={12} className="text-slate-500" />
+                        {pkg.validityDays} Dias
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-slate-100 font-mono">
+                      ${pkg.price.toFixed(0)}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-bold">USDT</span>
+                  </div>
+                </div>
+
+                <div className="w-28 h-20 rounded-xl overflow-hidden border border-slate-800 relative self-center bg-slate-950 shrink-0">
+                  <img
+                    src={pkg.image}
+                    alt={pkg.name}
+                    className="w-full h-full object-cover brightness-90 group-hover:scale-105 transition-all duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
+                </div>
+              </div>
+
+              <div className="mt-4 pt-1">
+                <button
+                  onClick={() => setSelectedProduct(pkg)}
+                  className="w-full h-10 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-black text-xs rounded-xl tracking-wider uppercase transition-all shadow-md active:scale-[0.98]"
+                >
+                  Alugar Veículo
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
 
       {/* Grid of Quick Actions buttons (Coupon, Recharge, Withdraw, Invite, APP) */}
       <div className="px-4">
@@ -492,6 +536,69 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           </div>
         )}
       </AnimatePresence>
+
+      {/* Confirmation Purchase Modal overlay */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative"
+            >
+              <h3 className="text-base font-black text-slate-100 flex items-center gap-2 mb-2">
+                <ShoppingBag size={18} className="text-cyan-400" />
+                Confirmar Aluguel VIP
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">
+                Você confirma a locação do veículo <span className="font-bold text-slate-200">{selectedProduct.name}</span> pelo valor simulado de 
+                <span className="font-bold text-cyan-400"> ${selectedProduct.price.toFixed(2)} USDT</span>?
+              </p>
+
+              <div className="my-4 bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs font-bold text-slate-300">
+                <div className="flex justify-between">
+                  <span>Rendimento Estimado Diário:</span>
+                  <span className="text-emerald-400">+${selectedProduct.dailyProfit.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Seu Saldo Atual:</span>
+                  <span className="text-slate-100">${user.balance.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-slate-800/60">
+                  <span>Saldo Restante após compra:</span>
+                  <span className={user.balance >= selectedProduct.price ? 'text-emerald-400' : 'text-rose-400'}>
+                    ${(user.balance - selectedProduct.price).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {user.balance < selectedProduct.price && (
+                <div className="mb-4 bg-rose-950/20 border border-rose-500/20 rounded-xl p-3 flex gap-2 text-[10px] text-rose-300 font-semibold leading-relaxed">
+                  <ShieldAlert size={14} className="text-rose-400 shrink-0 mt-0.5" />
+                  <span>Seu saldo atual é insuficiente para a transação. Acesse o depósito para adicionar fundos.</span>
+                </div>
+              )}
+
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="flex-1 h-11 bg-slate-950 border border-slate-800 text-slate-400 font-bold text-xs rounded-xl hover:text-slate-200 transition-all active:scale-95"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleBuyPackage}
+                  className="flex-1 h-11 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black text-xs rounded-xl hover:from-cyan-300 hover:to-blue-400 transition-all active:scale-95 shadow-md shadow-cyan-500/10"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
 
       {/* Winning Reward Splash Pop-up Overlay */}
       <AnimatePresence>
