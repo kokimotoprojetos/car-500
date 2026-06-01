@@ -119,9 +119,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <img 
           src="/fundo.png" 
           alt="Background" 
-          className="w-full h-full object-cover brightness-[0.22]"
+          className="w-full h-full object-cover brightness-[0.55]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/80 to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/60 to-slate-950/90" />
       </div>
 
       {/* Decorative luxury neon lights */}
