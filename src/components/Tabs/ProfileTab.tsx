@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Wallet, ShieldCheck, History, Calendar, LogOut, ArrowRight, Activity, HelpCircle, Lock, Users, ListFilter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserState } from '../../types';
+import { hashPassword } from '../../lib/supabase';
 
 // Helper: get today's date as YYYY-MM-DD string
 function todayStr() {
@@ -55,16 +56,17 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
     triggerToast(`Check-In efetuado! Saldo atualizado com +R$${checkinReward.toFixed(2)}`, 'success');
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.trim().length < 4) {
       triggerToast('A senha precisa ter no mínimo 4 dígitos.');
       return;
     }
 
-    const updated = { ...user, passwordHash: newPassword.trim() };
+    const hashedNew = await hashPassword(newPassword.trim());
+    const updated = { ...user, passwordHash: hashedNew };
     onUpdateUser(updated);
-    triggerToast('Sua senha simulada foi alterada com sucesso!', 'success');
+    triggerToast('Sua senha foi alterada com sucesso!', 'success');
     setNewPassword('');
     setShowPasswordChange(false);
   };
