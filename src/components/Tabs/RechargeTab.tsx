@@ -18,8 +18,8 @@ const METHODS = [
 const PRESETS = [50, 100, 200, 300, 500, 1000];
 
 const LYTRON_API_URL = 'https://api.lytronpay.com/api/v1';
-const API_KEY = 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
-const SECRET_KEY = 'sk_live_' + 'PTWk8U1d7uPv1rCmF1n0Tn0BxU4U90ZKh17E25O9G9pi6RQ3';
+const API_KEY = import.meta.env.VITE_LYTRON_API_KEY || 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
+const SECRET_KEY = import.meta.env.VITE_LYTRON_SECRET_KEY || ('sk_live_' + 'PTWk8U1d7uPv1rCmF1n0Tn0BxU4U90ZKh17E25O9G9pi6RQ3');
 
 async function generateHmacSignature(rawBody: string, secretKey: string): Promise<string> {
   const encoder = new TextEncoder();
