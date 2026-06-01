@@ -99,7 +99,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
         if (response.ok) {
           const data = await response.json();
           const status = (data.status || '').toLowerCase();
-          if (status === 'paid' || status === 'completed' || status === 'approved' || data.paidAt || data.paid_at) {
+          if (status === 'paid' || status === 'completed' || status === 'approved' || status === 'pago' || data.paidAt || data.paid_at) {
             // Payment successful! Credit balance.
             const finalAmount = activeInvoice.amount;
             onUpdateUser((prevUser) => {
