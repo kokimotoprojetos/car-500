@@ -7,6 +7,26 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishabl
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
+ * Hashes a password string using SHA-256 via SubtleCrypto.
+ * Returns a hex string. Stored passwords will never be plain text.
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + 'salt_500car_2026'); // salt prefix
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Checks whether a stored password hash represents a plain-text legacy password.
+ * (Less than 60 chars means it's not a SHA-256 hex hash and is likely plain text.)
+ */
+export function isLegacyPassword(hash: string): boolean {
+  return hash.length < 60;
+}
+
+/**
  * Maps frontend UserState camelCase to database snake_case
  */
 function mapUserToDb(user: UserState) {

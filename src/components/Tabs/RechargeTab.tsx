@@ -615,8 +615,12 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 <h4 className="text-xs font-bold text-slate-400 flex items-center gap-1.5 uppercase">
                   <HelpCircle size={14} className="text-orange-400" /> Diretrizes de Retirada
                 </h4>
+                <div className="bg-amber-950/30 border border-amber-500/30 rounded-xl p-3 text-[10px] text-amber-300 font-semibold leading-relaxed flex gap-2">
+                  <Hourglass size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                  <span>Saques passam por análise administrativa e serão processados manualmente. Aguarde a aprovação no prazo de até 24h úteis.</span>
+                </div>
                 <ol className="list-decimal pl-4 space-y-2 text-[10px] text-slate-500 leading-relaxed font-semibold">
-                  <li>Os saques são processados de forma instantânea para a chave Pix informada.</li>
+                  <li>Após solicitar o saque, ele ficará em status <strong className="text-amber-400">Pendente</strong> até ser aprovado pela equipe 500CAR.</li>
                   <li>Taxa fixa de 10% aplicada sobre o valor do saque.</li>
                   <li>Horário de Retiradas: Funcionamento 24h por dia, 7 dias por semana.</li>
                   <li>Valor mínimo para solicitação de saques: R$10,00.</li>

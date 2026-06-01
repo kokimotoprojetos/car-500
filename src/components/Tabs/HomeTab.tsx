@@ -12,6 +12,11 @@ interface HomeTabProps {
   triggerToast: (msg: string, status?: 'success' | 'detail') => void;
 }
 
+// Helper: get today's date as YYYY-MM-DD string
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }: HomeTabProps) {
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
@@ -23,6 +28,16 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
     const welcomed = localStorage.getItem(`welcomed_${user.phone}`);
     return welcomed !== 'true';
   });
+
+  // --- Daily Check-in: validated by date (resets daily) ---
+  const checkinKey = `checkin_date_${user.phone}`;
+  const lastCheckinDate = localStorage.getItem(checkinKey) || '';
+  const alreadyCheckedInToday = lastCheckinDate === todayStr();
+
+  // --- Team Award: daily cooldown ---
+  const teamAwardKey = `team_award_date_${user.phone}`;
+  const lastTeamAwardDate = localStorage.getItem(teamAwardKey) || '';
+  const alreadyClaimedTeamAward = lastTeamAwardDate === todayStr();
 
   const handleCloseWelcome = () => {
     localStorage.setItem(`welcomed_${user.phone}`, 'true');
@@ -96,16 +111,16 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
   // Daily Check-in action
   const handleCheckin = () => {
-    if (user.checkedInToday) {
+    if (alreadyCheckedInToday) {
       triggerToast('Você já coletou sua recompensa diária hoje. Volte amanhã!');
       return;
     }
 
-    const checkinReward = 5.0; // Giving $5.00 daily check-in reward
+    const checkinReward = 5.0;
     const updated = {
       ...user,
-      balance: user.balance + checkinReward,
       checkedInToday: true,
+      balance: user.balance + checkinReward,
       rechargeRecords: [
         {
           id: `checkin_${Date.now()}`,
@@ -118,8 +133,9 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         ...user.rechargeRecords
       ]
     };
+    localStorage.setItem(checkinKey, todayStr());
     onUpdateUser(updated);
-    triggerToast(`Check-In realizado! Recompensa de $${checkinReward.toFixed(2)} creditada.`, 'success');
+    triggerToast(`Check-In realizado! Recompensa de R$${checkinReward.toFixed(2)} creditada.`, 'success');
   };
 
   // Simulated Coupon application
@@ -339,15 +355,19 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           {/* Team Awards block mimicking the crowned award screenshot */}
           <div
             onClick={() => {
-              triggerToast('Prêmios de Equipe: Bônus de indicação (1º Nível: 23% | 2º Nível: 4% | 3º Nível: 1%) coletados com sucesso!', 'success');
+              if (alreadyClaimedTeamAward) {
+                triggerToast('Você já coletou seu bônus de equipe hoje. Volte amanhã!');
+                return;
+              }
+              const reward = 50.0;
               const updated = {
                 ...user,
-                balance: user.balance + 50.0,
+                balance: user.balance + reward,
                 rechargeRecords: [
                   {
                     id: `award_${Date.now()}`,
                     type: 'reward' as const,
-                    amount: 50.0,
+                    amount: reward,
                     status: 'success' as const,
                     timestamp: Date.now(),
                     description: 'Comissão de equipe (Simulado)'
@@ -355,7 +375,9 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
                   ...user.rechargeRecords
                 ]
               };
+              localStorage.setItem(teamAwardKey, todayStr());
               onUpdateUser(updated);
+              triggerToast('Prêmios de Equipe: Bônus de indicação coletados com sucesso!', 'success');
             }}
             className="h-20 rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-500/10 p-3 flex justify-between items-center relative overflow-hidden cursor-pointer active:scale-98 transition-all"
           >
@@ -374,15 +396,15 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           <div
             onClick={handleCheckin}
             className={`h-20 rounded-2xl p-3 flex justify-between items-center relative overflow-hidden cursor-pointer active:scale-98 transition-all border ${
-              user.checkedInToday
+              alreadyCheckedInToday
                 ? 'bg-slate-900/60 border-slate-800'
                 : 'bg-gradient-to-br from-amber-950 to-slate-900 border-amber-500/10'
             }`}
           >
             <div className="z-10">
               <h3 className="text-xs font-black text-slate-200">Presença</h3>
-              <p className={`text-[9px] font-semibold mt-1 ${user.checkedInToday ? 'text-slate-500' : 'text-amber-400'}`}>
-                {user.checkedInToday ? 'Coletado Hoje' : 'Check-in diário'}
+              <p className={`text-[9px] font-semibold mt-1 ${alreadyCheckedInToday ? 'text-slate-500' : 'text-amber-400'}`}>
+                {alreadyCheckedInToday ? 'Coletado Hoje' : 'Check-in diário'}
               </p>
             </div>
             <div className="w-12 h-12 flex items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 shrink-0 z-10 text-amber-400">

@@ -3,6 +3,11 @@ import { User, Wallet, ShieldCheck, History, Calendar, LogOut, ArrowRight, Activ
 import { motion, AnimatePresence } from 'motion/react';
 import { UserState } from '../../types';
 
+// Helper: get today's date as YYYY-MM-DD string
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 interface ProfileTabProps {
   user: UserState;
   onUpdateUser: (updated: UserState) => void;
@@ -17,9 +22,13 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
+  // Date-based daily check-in (same as HomeTab)
+  const checkinKey = `checkin_date_${user.phone}`;
+  const alreadyCheckedInToday = (localStorage.getItem(checkinKey) || '') === todayStr();
+
   // Daily Check-in action identical to home page
   const handleCheckin = () => {
-    if (user.checkedInToday) {
+    if (alreadyCheckedInToday) {
       triggerToast('Você já coletou sua recompensa diária hoje. Volte amanhã!');
       return;
     }
@@ -41,8 +50,9 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
         ...user.rechargeRecords
       ]
     };
+    localStorage.setItem(checkinKey, todayStr());
     onUpdateUser(updated);
-    triggerToast(`Check-In efetuado! Saldo atualizado com +$${checkinReward.toFixed(2)}`, 'success');
+    triggerToast(`Check-In efetuado! Saldo atualizado com +R$${checkinReward.toFixed(2)}`, 'success');
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -290,7 +300,7 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
                         <p className="text-[9px] text-slate-500 font-semibold">{formatDate(rec.timestamp)}</p>
                       </div>
                       <div className="text-right space-y-0.5">
-                        <span className="text-xs font-black font-mono text-emerald-400">+${rec.amount.toFixed(2)}</span>
+                        <span className="text-xs font-black font-mono text-emerald-400">+R${rec.amount.toFixed(2)}</span>
                         <span className="block text-[8px] uppercase tracking-wider text-emerald-500 font-bold font-sans">Sucesso</span>
                       </div>
                     </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Phone, Lock, ChevronDown, CheckCircle, Car } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getUserFromSupabase, saveUserToSupabase } from '../lib/supabase';
+import { getUserFromSupabase, saveUserToSupabase, hashPassword, isLegacyPassword } from '../lib/supabase';
 
 interface LoginScreenProps {
   onLoginSuccess: (phoneNumber: string) => void;
@@ -70,11 +70,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           return;
         }
 
-        // Register new profile with default balance
+        // Register new profile with hashed password
         const referrer = localStorage.getItem('pending_invite_referrer') || '';
+        const hashedPassword = await hashPassword(password);
         const initialUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-          phone: emailVal, // we store email inside the existing primary key/phone field
+          phone: emailVal,
           isLoggedIn: false,
           balance: 16.0,
           jobDeposit: 0.0,
@@ -84,7 +85,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           rechargeRecords: [],
           withdrawRecords: [],
           activeInvestments: [],
-          passwordHash: password,
+          passwordHash: hashedPassword,
           referredBy: referrer,
           createdAt: Date.now()
         };
@@ -106,7 +107,24 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           setLoading(false);
           return;
         } else {
-          if (existingDb.passwordHash !== password) {
+          // Support legacy plain-text passwords (migration to hashed on success)
+          let passwordMatches = false;
+          if (isLegacyPassword(existingDb.passwordHash)) {
+            // Old plain-text comparison
+            passwordMatches = existingDb.passwordHash === password;
+            if (passwordMatches) {
+              // Migrate to hashed password silently
+              const hashedPassword = await hashPassword(password);
+              existingDb.passwordHash = hashedPassword;
+              await saveUserToSupabase(existingDb);
+            }
+          } else {
+            // Standard hashed comparison
+            const hashedInput = await hashPassword(password);
+            passwordMatches = existingDb.passwordHash === hashedInput;
+          }
+
+          if (!passwordMatches) {
             triggerToast('Senha incorreta.');
             setLoading(false);
             return;

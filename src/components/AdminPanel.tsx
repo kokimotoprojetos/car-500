@@ -6,6 +6,29 @@ import { getAllUsersFromSupabase, saveUserToSupabase, deleteUserFromSupabase } f
 // Generated credentials
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '500caradmin@2026';
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2-hour session expiry
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15-minute lockout
+
+function isAdminSessionValid(): boolean {
+  const raw = localStorage.getItem('admin_session');
+  if (!raw) return false;
+  try {
+    const ts = parseInt(raw, 10);
+    if (isNaN(ts)) return false;
+    return Date.now() - ts < SESSION_TTL_MS;
+  } catch {
+    return false;
+  }
+}
+
+function getFailedAttempts(): number {
+  return parseInt(localStorage.getItem('admin_failed_attempts') || '0', 10);
+}
+
+function getLockoutUntil(): number {
+  return parseInt(localStorage.getItem('admin_lockout_until') || '0', 10);
+}
 
 interface PendingWithdrawal {
   user: UserState;
@@ -37,25 +60,45 @@ export default function AdminPanel() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Check local session
+  // Check local session with expiry
   useEffect(() => {
-    const isLogged = localStorage.getItem('admin_session') === 'true';
-    if (isLogged) {
+    if (isAdminSessionValid()) {
       setIsAuthorized(true);
       fetchUsers();
+    } else {
+      localStorage.removeItem('admin_session');
     }
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check lockout
+    const lockoutUntil = getLockoutUntil();
+    if (Date.now() < lockoutUntil) {
+      const remainingMins = Math.ceil((lockoutUntil - Date.now()) / 60000);
+      setLoginError(`Conta bloqueada por tentativas excessivas. Tente novamente em ${remainingMins} minuto(s).`);
+      return;
+    }
+
     if (username === ADMIN_USER && password === ADMIN_PASS) {
-      localStorage.setItem('admin_session', 'true');
+      localStorage.setItem('admin_session', Date.now().toString());
+      localStorage.removeItem('admin_failed_attempts');
+      localStorage.removeItem('admin_lockout_until');
       setIsAuthorized(true);
       setLoginError('');
       fetchUsers();
       showToast('Bem-vindo, Administrador!');
     } else {
-      setLoginError('Usuário ou senha incorretos.');
+      const attempts = getFailedAttempts() + 1;
+      localStorage.setItem('admin_failed_attempts', attempts.toString());
+      if (attempts >= MAX_ATTEMPTS) {
+        localStorage.setItem('admin_lockout_until', (Date.now() + LOCKOUT_MS).toString());
+        localStorage.setItem('admin_failed_attempts', '0');
+        setLoginError(`Muitas tentativas incorretas. Login bloqueado por 15 minutos.`);
+      } else {
+        setLoginError(`Usuário ou senha incorretos. (${attempts}/${MAX_ATTEMPTS} tentativas)`);
+      }
     }
   };
 
