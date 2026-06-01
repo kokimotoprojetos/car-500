@@ -17,12 +17,18 @@ import InviteTab from './components/Tabs/InviteTab';
 
 import { UserState } from './types';
 import { saveUserToSupabase, getUserFromSupabase } from './lib/supabase';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
   const [user, setUser] = useState<UserState | null>(null);
   const [activeTab, setActiveTab] = useState<string>('home');
   const [isLiveChatOpen, setIsLiveChatOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; status: 'success' | 'detail' } | null>(null);
+
+  // Check if current route is the secret admin path
+  if (window.location.pathname === '/oculto') {
+    return <AdminPanel />;
+  }
 
   // Trigger brief floating notifications
   const triggerToast = (msg: string, status: 'success' | 'detail' = 'detail') => {

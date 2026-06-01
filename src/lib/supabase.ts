@@ -123,3 +123,45 @@ export async function getReferredUsersFromSupabase(inviteCode: string): Promise<
     return [];
   }
 }
+
+/**
+ * Retrieves all registered users from Supabase (for admin panel)
+ */
+export async function getAllUsersFromSupabase(): Promise<UserState[]> {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data.map(mapDbToUser);
+  } catch (err) {
+    console.error('Failed to retrieve all users from Supabase:', err);
+    return [];
+  }
+}
+
+/**
+ * Deletes a user profile from Supabase by phone (which stores email)
+ */
+export async function deleteUserFromSupabase(phone: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('phone', phone);
+
+    if (error) {
+      console.error('Error deleting user from Supabase:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to delete user from Supabase:', err);
+    return false;
+  }
+}
