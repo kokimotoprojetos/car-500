@@ -220,24 +220,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
   return (
     <div className="flex-1 pb-24 relative overflow-y-auto">
-      {/* Dynamic Header */}
-      <div className="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-900 sticky top-0 z-20">
-        <div className="flex items-center gap-1.5">
-          <div className="w-5 h-5 rounded bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center">
-            <span className="text-xs">🏎️</span>
-          </div>
-          <span className="text-base font-black tracking-widest text-slate-100 uppercase bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            500CAR
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Active alerts panel */}
-          <div className="text-[10px] text-slate-400 font-bold bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>VIP Ativo</span>
-          </div>
-        </div>
-      </div>
 
       {/* Sliding announcements ticker */}
       <div className="bg-cyan-950/20 px-4 py-2 border-b border-cyan-500/10 flex items-center gap-2 text-xs">
