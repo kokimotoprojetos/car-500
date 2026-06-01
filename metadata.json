@@ -1,0 +1,6 @@
+{
+  "name": "500CAR Luxury Club",
+  "description": "Simulador de investimentos e gamificação premium 500CAR - Desfrute do luxo, gire a roleta e gerencie sua carteira de superesportivos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
