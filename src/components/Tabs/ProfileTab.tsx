@@ -192,14 +192,14 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
 
           {/* Wallet detail metadata */}
           <button
-            onClick={() => triggerToast(`Seu processador de carteira principal está estabelecido em USDT TRC20 para saques.`, 'success')}
+            onClick={() => triggerToast(`Sua chave Pix principal está configurada para saques.`, 'success')}
             className="w-full h-13 flex items-center justify-between px-4 text-xs font-bold text-slate-300 hover:text-white"
           >
             <div className="flex items-center gap-3">
               <Wallet size={16} className="text-orange-400" />
               <span>Informações da Carteira</span>
             </div>
-            <span className="text-[10px] font-mono font-black text-slate-500">TRC20</span>
+            <span className="text-[10px] font-mono font-black text-slate-500">PIX</span>
           </button>
 
           {/* Password modifier triggers modal */}

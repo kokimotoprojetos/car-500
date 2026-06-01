@@ -234,7 +234,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           {/* Active alerts panel */}
           <div className="text-[10px] text-slate-400 font-bold bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Simulação VIP</span>
+            <span>VIP Ativo</span>
           </div>
         </div>
       </div>
@@ -297,7 +297,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             Nossa Frota VIP
           </h2>
           <p className="text-xs text-slate-400 font-semibold mt-0.5">
-            Selecione um veículo superesportivo para obter rendimentos diários simulados
+            Selecione um veículo superesportivo para obter rendimentos diários
           </p>
         </div>
 
@@ -506,7 +506,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
               className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative"
             >
               <h3 className="text-base font-black text-slate-100 mb-2">Usar Cupom de Recompensa</h3>
-              <p className="text-xs text-slate-400 mb-4">Insira um código válido para adicionar fundos simulados.</p>
+              <p className="text-xs text-slate-400 mb-4">Insira um código válido para adicionar fundos.</p>
               
               <form onSubmit={handleApplyCoupon} className="space-y-3">
                 <input
@@ -553,23 +553,23 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
                 Confirmar Aluguel VIP
               </h3>
               <p className="text-xs text-slate-400 mb-4">
-                Você confirma a locação do veículo <span className="font-bold text-slate-200">{selectedProduct.name}</span> pelo valor simulado de 
-                <span className="font-bold text-cyan-400"> ${selectedProduct.price.toFixed(2)} USDT</span>?
+                Você confirma a locação do veículo <span className="font-bold text-slate-200">{selectedProduct.name}</span> pelo valor de 
+                <span className="font-bold text-cyan-400"> R$ {selectedProduct.price.toFixed(2)}</span>?
               </p>
 
               <div className="my-4 bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs font-bold text-slate-300">
                 <div className="flex justify-between">
                   <span>Rendimento Estimado Diário:</span>
-                  <span className="text-emerald-400">+${selectedProduct.dailyProfit.toFixed(2)}</span>
+                  <span className="text-emerald-400">+R$ {selectedProduct.dailyProfit.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Seu Saldo Atual:</span>
-                  <span className="text-slate-100">${user.balance.toFixed(2)}</span>
+                  <span className="text-slate-100">R$ {user.balance.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-slate-800/60">
                   <span>Saldo Restante após compra:</span>
                   <span className={user.balance >= selectedProduct.price ? 'text-emerald-400' : 'text-rose-400'}>
-                    ${(user.balance - selectedProduct.price).toFixed(2)}
+                    R$ {(user.balance - selectedProduct.price).toFixed(2)}
                   </span>
                 </div>
               </div>

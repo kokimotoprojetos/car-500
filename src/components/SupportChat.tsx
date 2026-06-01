@@ -17,23 +17,23 @@ interface Message {
 const FAQ_RESPONSES: { keywords: string[]; answer: string }[] = [
   {
     keywords: ['recarregar', 'recarga', 'recharge', 'deposito', 'depositar'],
-    answer: 'Para recarregar, acesse a guia "Recarga" (Recharge), escolha o método desejado (ex: USDT TRC20 ou correspondente), insira o valor desejado e clique em "Submeter". O saldo simulado será creditado imediatamente!'
+    answer: 'Para recarregar, acesse a guia "Recarga", insira o valor desejado e preencha seus dados para pagar via Pix. O saldo será creditado automaticamente após a confirmação!'
   },
   {
     keywords: ['sacar', 'saque', 'withdraw', 'retirar', 'pagamento'],
-    answer: 'Os saques simulados podem ser solicitados na sua tela de Perfil em "Sacar" ou pela guia rápida. O tempo de processamento é quase imediato na simulação, e os registros podem ser auditados na sua carteira!'
+    answer: 'Os saques podem ser solicitados na sua tela de Perfil em "Sacar" ou pela guia rápida. O tempo de processamento é rápido e os registros de saque podem ser acompanhados na sua carteira!'
   },
   {
     keywords: ['carro', 'pacote', 'investir', 'rendimento', 'lucro'],
-    answer: 'Cada veículo VIP da frota 500CAR oferece um retorno diário diferenciado de até 300% ao final do ciclo de 90 dias. Ao comprar seu supercarro, ele começará a minerar lucros simulados gerados automaticamente segundo a segundo.'
+    answer: 'Cada veículo VIP da frota 500CAR oferece um retorno diário diferenciado de até 300% ao final do ciclo de 90 dias. Ao adquirir a locação do seu supercarro, ele começará a gerar rendimentos na sua carteira segundo a segundo.'
   },
   {
     keywords: ['roleta', 'spin', 'girar', 'ganhar'],
-    answer: 'A seção "Gire e Ganhe" (Spin & Win) na tela inicial custa 1500 pontos ou $15.00 por giro. Você tem a chance de obter até 3777 USDT extras ou supercarros na roleta!'
+    answer: 'A seção "Gire e Ganhe" (Spin & Win) na tela inicial custa 1500 pontos ou R$ 15,00 por giro. Você tem a chance de obter até R$ 37,77 extras ou supercarros na roleta!'
   },
   {
     keywords: ['indicado', 'convite', 'equipe', 'indicador', 'referencia'],
-    answer: 'Você pode copiar seu link exclusivo de indicação clicando em "Convidar" na tela principal e simular novos usuários ingressando na sua rede de níveis VIP para maximizar suas comissões de equipe.'
+    answer: 'Você pode copiar seu link exclusivo de indicação clicando em "Convidar" na tela principal e convidar novos parceiros para ingressarem na sua rede de níveis VIP para maximizar suas comissões de equipe.'
   }
 ];
 
@@ -42,7 +42,7 @@ export default function SupportChat({ isOpen, onClose }: SupportChatProps) {
     {
       id: 'init-1',
       sender: 'bot',
-      text: 'Olá! Bem-vindo ao suporte de atendimento do 500CAR Luxury Club. Como posso ajudar você no simulador VIP hoje?',
+      text: 'Olá! Bem-vindo ao suporte de atendimento do 500CAR Luxury Club. Como posso ajudar você no portal VIP hoje?',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);

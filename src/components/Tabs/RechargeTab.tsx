@@ -10,10 +10,7 @@ interface RechargeTabProps {
   onNavigate: (tabId: string) => void;
 }
 
-const METHODS = [
-  { id: 'pix', label: 'PIX Instantâneo (LytronPay)', description: 'Pagamento instantâneo via Pix com confirmação automática' },
-  { id: 'usdt', label: 'USDT TRC20', description: 'Blockchain Tron' }
-];
+// Strictly PIX Instantâneo via LytronPay
 
 const PRESETS = [50, 100, 200, 300, 500, 1000];
 
@@ -64,7 +61,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
     timeLeft: number;
   } | null>(null);
 
-  // Countdown timer for active simulated invoice
+  // Countdown timer for active Pix invoice
   useEffect(() => {
     if (!activeInvoice) return;
 
@@ -72,7 +69,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       setActiveInvoice((prev) => {
         if (!prev) return null;
         if (prev.timeLeft <= 1) {
-          triggerToast('O tempo limite do pagamento simulado expirou.');
+          triggerToast('O tempo limite do pagamento expirou.');
           return null;
         }
         return { ...prev, timeLeft: prev.timeLeft - 1 };
@@ -146,75 +143,62 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
 
     setProcessingInvoice(true);
 
-    if (method === 'pix') {
-      const rawCpf = customerCpf.replace(/\D/g, '');
-      if (rawCpf.length !== 11) {
-        triggerToast('Por favor, insira um CPF válido com 11 dígitos.');
-        setProcessingInvoice(false);
-        return;
+    const rawCpf = customerCpf.replace(/\D/g, '');
+    if (rawCpf.length !== 11) {
+      triggerToast('Por favor, insira um CPF válido com 11 dígitos.');
+      setProcessingInvoice(false);
+      return;
+    }
+    if (!customerName.trim()) {
+      triggerToast('Por favor, insira seu Nome Completo.');
+      setProcessingInvoice(false);
+      return;
+    }
+
+    const payload = {
+      amount: val,
+      description: `Recarga 500Car VIP - ${user.phone}`,
+      customer: {
+        name: customerName,
+        email: customerEmail.trim() || `user_${user.phone}@500car.com`,
+        phone: user.phone,
+        document: {
+          type: 'cpf',
+          number: rawCpf
+        }
       }
-      if (!customerName.trim()) {
-        triggerToast('Por favor, insira seu Nome Completo.');
-        setProcessingInvoice(false);
-        return;
+    };
+
+    try {
+      const rawBody = JSON.stringify(payload);
+      const signature = await generateHmacSignature(rawBody, SECRET_KEY);
+
+      const response = await fetch(`${LYTRON_API_URL}/charges`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Access-Key': API_KEY,
+          'Transaction-Hash': signature
+        },
+        body: rawBody
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao gerar Pix da LytronPay');
       }
 
-      const payload = {
+      setActiveInvoice({
+        txid: data.txid || `tx_${Date.now()}`,
+        address: data.copyPaste || data.qrcode || '',
         amount: val,
-        description: `Recarga 500Car VIP - ${user.phone}`,
-        customer: {
-          name: customerName,
-          email: customerEmail.trim() || `user_${user.phone}@500car.com`,
-          phone: user.phone,
-          document: {
-            type: 'cpf',
-            number: rawCpf
-          }
-        }
-      };
-
-      try {
-        const rawBody = JSON.stringify(payload);
-        const signature = await generateHmacSignature(rawBody, SECRET_KEY);
-
-        const response = await fetch(`${LYTRON_API_URL}/charges`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Api-Access-Key': API_KEY,
-            'Transaction-Hash': signature
-          },
-          body: rawBody
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || 'Erro ao gerar Pix da LytronPay');
-        }
-
-        setActiveInvoice({
-          txid: data.txid || `tx_${Date.now()}`,
-          address: data.copyPaste || data.qrcode || '',
-          amount: val,
-          method: 'PIX',
-          timeLeft: 600 // 10 minutes for Pix
-        });
-      } catch (err: any) {
-        triggerToast(`Falha na integração LytronPay: ${err.message || err}`);
-      } finally {
-        setProcessingInvoice(false);
-      }
-    } else {
-      // Mock USDT TRC20 Invoice
-      setTimeout(() => {
-        setActiveInvoice({
-          address: 'TYLStSimulatedRechargeAddressTrc20X99XxxYyZz123',
-          amount: val,
-          method: 'USDT TRC20',
-          timeLeft: 300 // 5 minutes standard
-        });
-        setProcessingInvoice(false);
-      }, 800);
+        method: 'PIX',
+        timeLeft: 600 // 10 minutes for Pix
+      });
+    } catch (err: any) {
+      triggerToast(`Falha na integração LytronPay: ${err.message || err}`);
+    } finally {
+      setProcessingInvoice(false);
     }
   };
 
@@ -290,46 +274,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               onSubmit={handleSubmitRecharge}
               className="space-y-4"
             >
-              {/* Method choice dropdown */}
-              <div className="space-y-1.5 relative">
-                <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                  Método de Recarga / Payment Method
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowMethodDrop(!showMethodDrop)}
-                  className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 flex items-center justify-between hover:border-slate-700/80 transition-all font-bold text-sm text-slate-200"
-                >
-                  <span>{METHODS.find((m) => m.id === method)?.label}</span>
-                  <ChevronDown size={16} className="text-slate-400" />
-                </button>
-
-                <AnimatePresence>
-                  {showMethodDrop && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.98, y: 5 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.98, y: 5 }}
-                      className="absolute left-0 right-0 top-20 bg-slate-900 border border-slate-800 rounded-2xl z-50 p-2 shadow-2xl divide-y divide-slate-800/40"
-                    >
-                      {METHODS.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => {
-                            setMethod(item.id);
-                            setShowMethodDrop(false);
-                          }}
-                          className="w-full text-left px-3 py-3 rounded-xl hover:bg-slate-800 text-xs flex flex-col gap-0.5"
-                        >
-                          <span className="font-bold text-slate-200">{item.label}</span>
-                          <span className="text-[10px] text-slate-500 font-medium">{item.description}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              {/* Pix is the only method */}
 
               {/* Amount text input fields */}
               <div className="space-y-1.5">
@@ -352,51 +297,49 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 </div>
               </div>
 
-              {/* Extra PIX details fields */}
-              {method === 'pix' && (
-                <div className="space-y-4 pt-2 border-t border-slate-900">
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
-                      Nome Completo do Pagador
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Nome impresso no Pix"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
-                      CPF do Pagador (Apenas números)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: 12345678901"
-                      value={customerCpf}
-                      onChange={(e) => setCustomerCpf(e.target.value.replace(/\D/g, '').substring(0, 11))}
-                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                      E-mail (Opcional)
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="seuemail@exemplo.com"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
-                    />
-                  </div>
+              {/* PIX details fields */}
+              <div className="space-y-4 pt-2 border-t border-slate-900">
+                <div className="space-y-1.5">
+                  <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                    Nome Completo do Pagador
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nome impresso no Pix"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                    required
+                  />
                 </div>
-              )}
+
+                <div className="space-y-1.5">
+                  <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
+                    CPF do Pagador (Apenas números)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 12345678901"
+                    value={customerCpf}
+                    onChange={(e) => setCustomerCpf(e.target.value.replace(/\D/g, '').substring(0, 11))}
+                    className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs uppercase tracking-widest text-slate-500 font-bold block">
+                    E-mail (Opcional)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="seuemail@exemplo.com"
+                    value={customerEmail}
+                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
+                  />
+                </div>
+              </div>
 
               {/* Preset grids matching the specific screenshots */}
               <div className="grid grid-cols-3 gap-2">
@@ -430,12 +373,12 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 </h4>
                 <div className="space-y-2.5 text-[10px] text-slate-500 leading-normal">
                   <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-850">
-                    <p className="font-bold text-slate-400 mb-1">1. Qual método de recarga é suportado?</p>
-                    <p>Damos preferência a transferências por simulação USDT TRC20, que operam de ponta a ponta na rede.</p>
+                    <p className="font-bold text-slate-400 mb-1">1. Como pagar?</p>
+                    <p>Copie o código Pix copia e cola fornecido ou escaneie o código QR com o aplicativo de qualquer instituição bancária.</p>
                   </div>
                   <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-850">
-                    <p className="font-bold text-slate-400 mb-1">2. Qual o prazo de conferência?</p>
-                    <p>O processamento simulado ocorre geralmente em menos de 10 segundos ao clicar no confirmador da bancada.</p>
+                    <p className="font-bold text-slate-400 mb-1">2. Qual o prazo de compensação?</p>
+                    <p>A confirmação do depósito via Pix é instantânea e automática. O seu saldo será atualizado assim que o pagamento for detectado.</p>
                   </div>
                 </div>
               </div>
@@ -455,9 +398,9 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
 
               {/* Price Tag Details */}
               <div className="bg-slate-950 rounded-xl p-4 text-center border border-slate-800/80">
-                <span className="text-xs text-slate-500 font-bold block mb-1">QUANTIA TOTAL A COPIAR</span>
+                <span className="text-xs text-slate-500 font-bold block mb-1">VALOR A PAGAR</span>
                 <span className="text-2xl font-black text-cyan-400 font-mono">
-                  ${activeInvoice.amount.toFixed(2)}
+                  R$ {activeInvoice.amount.toFixed(2)}
                 </span>
                 <span className="text-[10px] text-slate-500 font-bold block mt-1">({activeInvoice.method})</span>
               </div>
@@ -500,20 +443,13 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 </div>
               </div>
 
-              {/* Simulating Receipt Confirm button */}
-              <div className="pt-2 space-y-2">
-                <button
-                  onClick={handleConfirmMockPayment}
-                  className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs rounded-xl tracking-wider uppercase hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5"
-                >
-                  <CheckCircle size={15} />
-                  Simular Pagamento Pago
-                </button>
+              {/* Actions */}
+              <div className="pt-2">
                 <button
                   onClick={() => setActiveInvoice(null)}
                   className="w-full h-10 bg-slate-950 border border-slate-800 text-slate-400 font-semibold text-xs rounded-xl hover:text-slate-200"
                 >
-                  Cancelar Recarga
+                  Voltar / Cancelar Recarga
                 </button>
               </div>
             </motion.div>

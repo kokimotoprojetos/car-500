@@ -210,10 +210,10 @@ export default function PackagesTab({ user, onUpdateUser, onNavigate, triggerToa
                   </div>
 
                   <div className="pt-2 flex items-baseline gap-1">
+                    <span className="text-[10px] text-slate-500 font-bold mr-0.5">R$</span>
                     <span className="text-2xl font-black text-slate-100 font-mono">
-                      ${pkg.price.toFixed(0)}
+                      {pkg.price.toFixed(0)}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold">USDT</span>
                   </div>
                 </div>
 
@@ -258,23 +258,23 @@ export default function PackagesTab({ user, onUpdateUser, onNavigate, triggerToa
                 Confirmar Aluguel VIP
               </h3>
               <p className="text-xs text-slate-400 mb-4">
-                Você confirma a locação do veículo <span className="font-bold text-slate-200">{selectedProduct.name}</span> pelo valor simulado de 
-                <span className="font-bold text-cyan-400"> ${selectedProduct.price.toFixed(2)} USDT</span>?
+                Você confirma a locação do veículo <span className="font-bold text-slate-200">{selectedProduct.name}</span> pelo valor de 
+                <span className="font-bold text-cyan-400"> R$ {selectedProduct.price.toFixed(2)}</span>?
               </p>
 
               <div className="my-4 bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs font-bold text-slate-300">
                 <div className="flex justify-between">
                   <span>Rendimento Estimado Diário:</span>
-                  <span className="text-emerald-400">+${selectedProduct.dailyProfit.toFixed(2)}</span>
+                  <span className="text-emerald-400">+R$ {selectedProduct.dailyProfit.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Seu Saldo Atual:</span>
-                  <span className="text-slate-100">${user.balance.toFixed(2)}</span>
+                  <span className="text-slate-100">R$ {user.balance.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-slate-800/60">
                   <span>Saldo Restante após compra:</span>
                   <span className={user.balance >= selectedProduct.price ? 'text-emerald-400' : 'text-rose-400'}>
-                    ${(user.balance - selectedProduct.price).toFixed(2)}
+                    R$ {(user.balance - selectedProduct.price).toFixed(2)}
                   </span>
                 </div>
               </div>
