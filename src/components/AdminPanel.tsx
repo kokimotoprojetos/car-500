@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Users, Search, DollarSign, Award, RefreshCw, Trash2, Edit2, Check, X, ShieldAlert, LogOut } from 'lucide-react';
-import { UserState } from '../types';
+import { Shield, Users, Search, DollarSign, RefreshCw, Trash2, Edit2, Check, X, ShieldAlert, LogOut, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { UserState, TransactionRecord } from '../types';
 import { getAllUsersFromSupabase, saveUserToSupabase, deleteUserFromSupabase } from '../lib/supabase';
 
 // Generated credentials
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '500caradmin@2026';
+
+interface PendingWithdrawal {
+  user: UserState;
+  record: TransactionRecord;
+}
 
 export default function AdminPanel() {
   const [username, setUsername] = useState('');
@@ -23,7 +28,6 @@ export default function AdminPanel() {
   const [editingUserPhone, setEditingUserPhone] = useState<string | null>(null);
   const [editBalance, setEditBalance] = useState('');
   const [editVip, setEditVip] = useState<'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond'>('Bronze');
-  const [editSpins, setEditSpins] = useState('');
 
   // Toast message
   const [toast, setToast] = useState<string | null>(null);
@@ -86,14 +90,12 @@ export default function AdminPanel() {
     setEditingUserPhone(user.phone);
     setEditBalance(user.balance.toString());
     setEditVip(user.vipLevel);
-    setEditSpins(user.spinTurns.toString());
   };
 
   const saveEdit = async (user: UserState) => {
     const parsedBalance = parseFloat(editBalance);
-    const parsedSpins = parseInt(editSpins, 10);
 
-    if (isNaN(parsedBalance) || isNaN(parsedSpins)) {
+    if (isNaN(parsedBalance)) {
       showToast('Por favor, insira valores válidos.');
       return;
     }
@@ -101,8 +103,7 @@ export default function AdminPanel() {
     const updatedUser: UserState = {
       ...user,
       balance: parsedBalance,
-      vipLevel: editVip,
-      spinTurns: parsedSpins
+      vipLevel: editVip
     };
 
     const success = await saveUserToSupabase(updatedUser);
@@ -130,11 +131,75 @@ export default function AdminPanel() {
     }
   };
 
+  // Moderation Handlers for Withdrawals
+  const handleApproveWithdrawal = async (user: UserState, recordId: string, amount: number) => {
+    if (!window.confirm(`Aprovar saque de R$ ${amount.toFixed(2)} para ${user.phone}?`)) return;
+
+    const updatedWithdraws = user.withdrawRecords.map(rec => {
+      if (rec.id === recordId) {
+        return { ...rec, status: 'success' as const };
+      }
+      return rec;
+    });
+
+    const updatedUser: UserState = {
+      ...user,
+      totalWithdrawn: (user.totalWithdrawn || 0) + amount,
+      withdrawRecords: updatedWithdraws
+    };
+
+    const success = await saveUserToSupabase(updatedUser);
+    if (success) {
+      showToast('Saque APROVADO com sucesso!');
+      setUsersList(prev => prev.map(u => u.phone === user.phone ? updatedUser : u));
+    } else {
+      showToast('Erro ao processar aprovação no banco de dados.');
+    }
+  };
+
+  const handleRejectWithdrawal = async (user: UserState, recordId: string, amount: number) => {
+    if (!window.confirm(`RECUSAR saque de R$ ${amount.toFixed(2)} para ${user.phone}? O valor será devolvido ao saldo dele.`)) return;
+
+    const updatedWithdraws = user.withdrawRecords.map(rec => {
+      if (rec.id === recordId) {
+        return { ...rec, status: 'failed' as const };
+      }
+      return rec;
+    });
+
+    const updatedUser: UserState = {
+      ...user,
+      balance: user.balance + amount, // Refund balance
+      withdrawRecords: updatedWithdraws
+    };
+
+    const success = await saveUserToSupabase(updatedUser);
+    if (success) {
+      showToast('Saque RECUSADO e saldo devolvido ao usuário.');
+      setUsersList(prev => prev.map(u => u.phone === user.phone ? updatedUser : u));
+    } else {
+      showToast('Erro ao processar rejeição no banco de dados.');
+    }
+  };
+
   // Compute Stats
   const totalUsers = usersList.length;
   const totalBalances = usersList.reduce((acc, u) => acc + (u.balance || 0), 0);
   const totalWithdrawn = usersList.reduce((acc, u) => acc + (u.totalWithdrawn || 0), 0);
-  const totalSpins = usersList.reduce((acc, u) => acc + (u.spinTurns || 0), 0);
+
+  // Extract pending withdrawals from all users
+  const pendingWithdrawals: PendingWithdrawal[] = [];
+  usersList.forEach(u => {
+    if (u.withdrawRecords) {
+      u.withdrawRecords.forEach(rec => {
+        if (rec.status === 'pending') {
+          pendingWithdrawals.push({ user: u, record: rec });
+        }
+      });
+    }
+  });
+
+  const totalPendingWithdrawalsCount = pendingWithdrawals.length;
 
   // Filter list
   const filteredUsers = usersList.filter(u => 
@@ -215,7 +280,7 @@ export default function AdminPanel() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:flex-row md:items-center gap-4 border-b border-slate-800 pb-5 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5 mb-6 font-sans">
         <div>
           <div className="flex items-center gap-2">
             <Shield className="text-cyan-400" size={24} />
@@ -223,7 +288,7 @@ export default function AdminPanel() {
               Painel do Administrador (500CAR)
             </h1>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">Gerenciamento centralizado de usuários e progresso em tempo real</p>
+          <p className="text-xs text-slate-400 mt-0.5">Gerenciamento centralizado de usuários e saques pendentes em tempo real</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button
@@ -280,15 +345,79 @@ export default function AdminPanel() {
         </div>
 
         <div className="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-xl flex items-center gap-4 relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-1 bg-amber-400" />
-          <div className="w-11 h-11 rounded-xl bg-amber-950/60 border border-amber-500/20 flex items-center justify-center text-amber-400">
-            <Award size={20} />
+          <div className="absolute top-0 inset-x-0 h-1 bg-rose-500" />
+          <div className="w-11 h-11 rounded-xl bg-rose-950/60 border border-rose-500/20 flex items-center justify-center text-rose-400">
+            <Clock size={20} className={totalPendingWithdrawalsCount > 0 ? 'animate-pulse' : ''} />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Giros em Roletas</span>
-            <span className="text-xl font-black text-amber-400 font-mono">{totalSpins}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Saques Pendentes</span>
+            <span className={`text-xl font-black font-mono ${totalPendingWithdrawalsCount > 0 ? 'text-rose-400' : 'text-slate-400'}`}>
+              {totalPendingWithdrawalsCount} solicitações
+            </span>
           </div>
         </div>
+      </div>
+
+      {/* Moderation Section for Pending Withdrawals */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl mb-6 space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <AlertTriangle className="text-rose-500 animate-bounce" size={18} />
+          <h2 className="text-base font-black uppercase text-slate-200 tracking-wide">
+            Aprovação de Saques Pix Pendentes ({totalPendingWithdrawalsCount})
+          </h2>
+        </div>
+
+        {totalPendingWithdrawalsCount === 0 ? (
+          <div className="text-center py-10 bg-slate-950/30 border border-slate-850 rounded-2xl text-slate-500 font-bold text-xs">
+            Nenhuma solicitação de saque Pix pendente no momento.
+          </div>
+        ) : (
+          <div className="overflow-x-auto border border-slate-800 rounded-xl">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-slate-450 uppercase font-black tracking-wider">
+                  <th className="py-3 px-4">Gmail do Cliente</th>
+                  <th className="py-3 px-4">UID</th>
+                  <th className="py-3 px-4">Valor Solicitado</th>
+                  <th className="py-3 px-4">Destinatário / Chave</th>
+                  <th className="py-3 px-4">Data da Solicitação</th>
+                  <th className="py-3 px-4 text-center">Moderação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/40 text-slate-350">
+                {pendingWithdrawals.map(({ user, record }) => (
+                  <tr key={record.id} className="hover:bg-slate-950/20 transition-colors">
+                    <td className="py-3 px-4 font-bold text-slate-200">{user.phone}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-slate-400">{user.uid}</td>
+                    <td className="py-3 px-4 font-mono font-black text-rose-400">R$ {record.amount.toFixed(2)}</td>
+                    <td className="py-3 px-4 font-semibold text-slate-300 max-w-[220px] truncate">{record.description}</td>
+                    <td className="py-3 px-4 text-slate-500 font-medium">
+                      {new Date(record.timestamp).toLocaleString('pt-BR')}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleApproveWithdrawal(user, record.id, record.amount)}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-400 cursor-pointer active:scale-95 transition-all text-[10px] font-black uppercase flex items-center gap-1"
+                        >
+                          <CheckCircle2 size={12} />
+                          Aprovar
+                        </button>
+                        <button
+                          onClick={() => handleRejectWithdrawal(user, record.id, record.amount)}
+                          className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-800/40 text-rose-450 cursor-pointer active:scale-95 transition-all text-[10px] font-black uppercase flex items-center gap-1"
+                        >
+                          <X size={12} />
+                          Recusar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Database View Container */}
@@ -324,7 +453,6 @@ export default function AdminPanel() {
                 <th className="py-4 px-4">UID</th>
                 <th className="py-4 px-4">Nível VIP</th>
                 <th className="py-4 px-4">Saldo (R$)</th>
-                <th className="py-4 px-4">Giros</th>
                 <th className="py-4 px-4">Total Sacado</th>
                 <th className="py-4 px-4">Investimentos Ativos</th>
                 <th className="py-4 px-4 text-right">Ações</th>
@@ -333,13 +461,13 @@ export default function AdminPanel() {
             <tbody className="divide-y divide-slate-800/40 text-slate-300">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-500 font-bold">
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-bold">
                     Carregando dados dos usuários do Supabase...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-500 font-bold">
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-bold">
                     Nenhum usuário cadastrado encontrado.
                   </td>
                 </tr>
@@ -407,20 +535,6 @@ export default function AdminPanel() {
                         )}
                       </td>
 
-                      {/* Spins */}
-                      <td className="py-3.5 px-4 font-mono font-bold">
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={editSpins}
-                            onChange={(e) => setEditSpins(e.target.value)}
-                            className="w-14 bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-xs focus:outline-none text-slate-100 font-bold"
-                          />
-                        ) : (
-                          <span className="text-amber-400">{item.spinTurns} giros</span>
-                        )}
-                      </td>
-
                       {/* Total Withdrawn */}
                       <td className="py-3.5 px-4 font-mono text-purple-400 font-semibold">
                         R$ {item.totalWithdrawn?.toFixed(2) || '0.00'}
@@ -461,7 +575,7 @@ export default function AdminPanel() {
                             </button>
                             <button
                               onClick={() => handleDelete(item.phone)}
-                              className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-800/40 text-rose-400 cursor-pointer active:scale-95 transition-all"
+                              className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-800/40 text-rose-450 cursor-pointer active:scale-95 transition-all"
                               title="Deletar Usuário"
                             >
                               <Trash2 size={14} />

@@ -23,7 +23,7 @@ export interface InvestmentPackage {
 
 export interface TransactionRecord {
   id: string;
-  type: 'recharge' | 'withdraw' | 'spin' | 'investment' | 'checkin' | 'reward';
+  type: 'recharge' | 'withdraw' | 'investment' | 'checkin' | 'reward';
   amount: number;
   status: 'pending' | 'success' | 'failed';
   timestamp: number;
@@ -39,7 +39,6 @@ export interface UserState {
   totalWithdrawn: number; // sum of successful withdrawals
   vipLevel: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
   checkedInToday: boolean;
-  spinTurns: number;
   rechargeRecords: TransactionRecord[];
   withdrawRecords: TransactionRecord[];
   activeInvestments: ActiveInvestment[];

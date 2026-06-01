@@ -241,7 +241,6 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
     setTimeout(() => {
       const updated = { ...user };
       updated.balance -= val;
-      updated.totalWithdrawn += val;
 
       const newRecord = {
         id: `withdraw_${Date.now()}`,
@@ -249,7 +248,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
         amount: val,
         status: 'pending' as const,
         timestamp: Date.now(),
-        description: `Saque enviado para Pix: ${destAddress.substring(0, 8)}...`
+        description: `Saque solicitado para Pix (${destAddress.substring(0, 5)}...)`
       };
 
       updated.withdrawRecords = [newRecord, ...updated.withdrawRecords];
@@ -260,21 +259,6 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       setWithdrawAmount('');
       setDestAddress('');
       setAccountName('');
-
-      const timeoutId = newRecord.id;
-      setTimeout(() => {
-        const currentStored = localStorage.getItem(`user_state_${user.phone}`);
-        if (currentStored) {
-          const parsed = JSON.parse(currentStored);
-          parsed.withdrawRecords = parsed.withdrawRecords.map((rec: any) => {
-            if (rec.id === timeoutId) {
-              return { ...rec, status: 'success' };
-            }
-            return rec;
-          });
-          onUpdateUser(parsed);
-        }
-      }, 6000);
 
       onNavigate('home');
     }, 1200);

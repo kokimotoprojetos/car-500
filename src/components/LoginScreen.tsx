@@ -80,7 +80,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           totalWithdrawn: 0.0,
           vipLevel: 'Bronze',
           checkedInToday: false,
-          spinTurns: 1, // Start with 1 free spin!
           rechargeRecords: [],
           withdrawRecords: [],
           activeInvestments: [],
@@ -112,7 +111,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             totalWithdrawn: 0.0,
             vipLevel: 'Bronze',
             checkedInToday: false,
-            spinTurns: 2,
             rechargeRecords: [],
             withdrawRecords: [],
             activeInvestments: [],

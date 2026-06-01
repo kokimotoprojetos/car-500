@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Gift, Wallet, ArrowDownCircle, Users, Award, Calendar, ChevronRight, Play, Coins, ShieldCheck, Car, Hourglass, ShoppingBag, ShieldAlert } from 'lucide-react';
-import { motion, useAnimation, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UserState, InvestmentPackage } from '../../types';
-import { ROULETTE_SECTORS, CAR_PACKAGES } from '../../data';
+import { CAR_PACKAGES } from '../../data';
 
 
 interface HomeTabProps {
@@ -13,10 +13,8 @@ interface HomeTabProps {
 }
 
 export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }: HomeTabProps) {
-  const [spinning, setSpinning] = useState(false);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
-  const [activeWin, setActiveWin] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
 
   const handleBuyPackage = () => {
@@ -66,17 +64,13 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
   };
 
   
-  // Motion controller for the roulette wheel
-  const wheelControls = useAnimation();
-  const [currentRot, setCurrentRot] = useState(0);
-
   // Auto-slide banner message simulation
   const [notifications] = useState([
-    'UID 178*** sacou $450.00 com sucesso!',
+    'UID 178*** sacou R$ 450.00!',
     'UID 432*** comprou 500Car VIP 3!',
-    'UID 908*** recebeu $3777.00 na Roleta!',
+    'UID 908*** recebeu comissão de indicação!',
     'UID 516*** acaba de ingressar no nível Prata!',
-    'UID 882*** recebeu bônus de equipe de $120.00!'
+    'UID 882*** recebeu bônus de equipe de R$ 120.00!'
   ]);
   const [activeNotifIndex, setActiveNotifIndex] = useState(0);
 
@@ -87,76 +81,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
     return () => clearInterval(timer);
   }, [notifications.length]);
 
-  // Handle roulette spin action
-  const handleSpin = async () => {
-    if (spinning) return;
-
-    const cost = 15.0; // Costs $15.00
-    if (user.balance < cost && user.spinTurns <= 0) {
-      triggerToast('Saldo insuficiente para girar a roleta ($15 necessário ou 1 Giro Grátis!). Faça uma Recarga.');
-      onNavigate('recharge');
-      return;
-    }
-
-    setSpinning(true);
-    let updatedUser = { ...user };
-    
-    if (updatedUser.spinTurns > 0) {
-      updatedUser.spinTurns -= 1;
-    } else {
-      updatedUser.balance -= cost;
-      // Add transaction record
-      updatedUser.rechargeRecords = [
-        {
-          id: `spin_${Date.now()}`,
-          type: 'spin' as const,
-          amount: cost,
-          status: 'success' as const,
-          timestamp: Date.now(),
-          description: 'Giro da Sorte 500CAR'
-        },
-        ...updatedUser.rechargeRecords
-      ];
-    }
-
-    // Select random winning sector
-    const sectorIndex = Math.floor(Math.random() * ROULETTE_SECTORS.length);
-    const winItem = ROULETTE_SECTORS[sectorIndex];
-
-    // Compute complete spin rotation. Lands exactly on sectorIndex
-    // Standard division: 360 degrees / 8 sectors = 45 degrees per sector
-    // We target center of sector to make arrow align neatly
-    const sectorDegrees = 360 / ROULETTE_SECTORS.length;
-    const targetDeg = (360 - (sectorIndex * sectorDegrees)) - (sectorDegrees / 2);
-    
-    // Add multiple complete 360 rotations (e.g., 5 cycles = 1800 deg)
-    const totalRotationNeeded = currentRot + 1800 + targetDeg;
-    setCurrentRot(totalRotationNeeded);
-
-    // Run high speed rotation animation
-    await wheelControls.start({
-      rotate: totalRotationNeeded,
-      transition: { duration: 4.5, ease: [0.1, 0.8, 0.25, 1] }
-    });
-
-    // Credit logic and update state
-    updatedUser.balance += winItem.value;
-    updatedUser.rechargeRecords = [
-      {
-        id: `spin_win_${Date.now()}`,
-        type: 'reward' as const,
-        amount: winItem.value,
-        status: 'success' as const,
-        timestamp: Date.now(),
-        description: `Prêmio Roleta: ${winItem.label}`
-      },
-      ...updatedUser.rechargeRecords
-    ];
-
-    onUpdateUser(updatedUser);
-    setActiveWin(`Parabéns! Você ganhou ${winItem.label} (Equivalente a $${winItem.value.toFixed(2)})!`);
-    setSpinning(false);
-  };
 
   // Daily Check-in action
   const handleCheckin = () => {
@@ -564,44 +488,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         )}
       </AnimatePresence>
 
-
-      {/* Winning Reward Splash Pop-up Overlay */}
-      <AnimatePresence>
-        {activeWin && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[110] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ scale: 0.7, y: 50, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.7, y: 50, opacity: 0 }}
-              className="w-full max-w-xs bg-slate-900 border border-amber-500/30 rounded-[32px] p-6 text-center shadow-2xl relative overflow-hidden"
-            >
-              {/* Star dust elements */}
-              <div className="absolute -top-10 -left-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-cyan-400/10 rounded-full blur-2xl" />
-
-              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400 mb-4 animate-bounce">
-                <Gift size={32} />
-              </div>
-
-              <h2 className="text-xl font-black text-slate-100 tracking-tight uppercase">Vitória Fantástica!</h2>
-              <p className="text-xs text-amber-400 font-bold mt-1 uppercase tracking-widest">Sorte Sob Rodas</p>
-
-              <div className="my-5 p-4 bg-slate-950 border border-slate-800 rounded-2xl">
-                <p className="text-xs font-semibold text-slate-300 leading-relaxed">
-                  {activeWin}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setActiveWin(null)}
-                className="w-full h-11 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl tracking-wider uppercase active:scale-95 transition-all shadow-lg shadow-amber-500/10"
-              >
-                Colher Recompensa
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

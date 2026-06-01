@@ -28,10 +28,6 @@ const FAQ_RESPONSES: { keywords: string[]; answer: string }[] = [
     answer: 'Cada veículo VIP da frota 500CAR oferece um retorno diário diferenciado de até 300% ao final do ciclo de 90 dias. Ao adquirir a locação do seu supercarro, ele começará a gerar rendimentos na sua carteira segundo a segundo.'
   },
   {
-    keywords: ['roleta', 'spin', 'girar', 'ganhar'],
-    answer: 'A seção "Gire e Ganhe" (Spin & Win) na tela inicial custa 1500 pontos ou R$ 15,00 por giro. Você tem a chance de obter até R$ 37,77 extras ou supercarros na roleta!'
-  },
-  {
     keywords: ['indicado', 'convite', 'equipe', 'indicador', 'referencia'],
     answer: 'Você pode copiar seu link exclusivo de indicação clicando em "Convidar" na tela principal e convidar novos parceiros para ingressarem na sua rede de níveis VIP para maximizar suas comissões de equipe.'
   }

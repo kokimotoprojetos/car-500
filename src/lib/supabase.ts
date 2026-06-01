@@ -18,7 +18,6 @@ function mapUserToDb(user: UserState) {
     total_withdrawn: user.totalWithdrawn,
     vip_level: user.vipLevel,
     checked_in_today: user.checkedInToday,
-    spin_turns: user.spinTurns,
     recharge_records: JSON.stringify(user.rechargeRecords),
     withdraw_records: JSON.stringify(user.withdrawRecords),
     active_investments: JSON.stringify(user.activeInvestments),
@@ -41,7 +40,6 @@ function mapDbToUser(dbUser: any): UserState {
     totalWithdrawn: parseFloat(dbUser.total_withdrawn || 0),
     vipLevel: dbUser.vip_level || 'Bronze',
     checkedInToday: !!dbUser.checked_in_today,
-    spinTurns: parseInt(dbUser.spin_turns || 0, 10),
     rechargeRecords: typeof dbUser.recharge_records === 'string' 
       ? JSON.parse(dbUser.recharge_records) 
       : (dbUser.recharge_records || []),
