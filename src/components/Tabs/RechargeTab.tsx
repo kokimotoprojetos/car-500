@@ -237,6 +237,10 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
     setLoadingWithdraw(true);
     setTimeout(() => {
       const updated = { ...user };
+      const fee = parseFloat((val * 0.10).toFixed(2));
+      const netAmount = parseFloat((val - fee).toFixed(2));
+
+      // Deduct full requested amount from balance
       updated.balance -= val;
 
       const newRecord = {
@@ -245,19 +249,20 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
         amount: val,
         status: 'pending' as const,
         timestamp: Date.now(),
-        description: `Saque solicitado para Pix (${destAddress.substring(0, 5)}...)`
+        description: `Saque R$${val.toFixed(2)} (taxa 10% = R$${fee.toFixed(2)}) → líquido R$${netAmount.toFixed(2)} — Pix: ${destAddress.substring(0, 5)}...`
       };
 
       updated.withdrawRecords = [newRecord, ...updated.withdrawRecords];
       onUpdateUser(updated);
 
-      triggerToast(`Saque de R$${val.toFixed(2)} solicitado com sucesso!`, 'success');
+      triggerToast(`Saque solicitado! Você receberá R$${netAmount.toFixed(2)} após taxa de 10% (R$${fee.toFixed(2)}).`, 'success');
       setLoadingWithdraw(false);
       setWithdrawAmount('');
       setDestAddress('');
       setAccountName('');
 
       onNavigate('home');
+
     }, 1200);
   };
 

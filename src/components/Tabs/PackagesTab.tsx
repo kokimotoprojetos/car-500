@@ -3,6 +3,7 @@ import { Car, Hourglass, Zap, TrendingUp, Check, ShoppingBag, ShieldAlert } from
 import { motion, AnimatePresence } from 'motion/react';
 import { UserState, InvestmentPackage } from '../../types';
 import { CAR_PACKAGES } from '../../data';
+import { payReferralCommission } from '../../lib/supabase';
 
 interface PackagesTabProps {
   user: UserState;
@@ -84,6 +85,12 @@ export default function PackagesTab({ user, onUpdateUser, onNavigate, triggerToa
 
     onUpdateUser(updated);
     triggerToast(`${selectedProduct.name} ativado com sucesso! Iniciando mineração de lucros.`, 'success');
+
+    // Pay referral commissions if this user was referred by someone
+    if (user.referredBy) {
+      payReferralCommission(user.referredBy, selectedProduct.price, user.phone);
+    }
+
     setSelectedProduct(null);
   };
 

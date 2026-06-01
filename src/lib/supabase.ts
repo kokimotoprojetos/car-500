@@ -183,3 +183,90 @@ export async function deleteUserFromSupabase(phone: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Finds a user by their UID (invite code) — used to resolve referral chains.
+ */
+async function getUserByUid(uid: string): Promise<UserState | null> {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('uid', uid)
+      .single();
+    if (error || !data) return null;
+    return mapDbToUser(data);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Credits a commission to a referrer: adds amount to their balance and logs the transaction.
+ */
+async function creditCommission(referrer: UserState, amount: number, level: number, buyerPhone: string): Promise<void> {
+  if (amount <= 0) return;
+  const levelLabel = level === 1 ? '1º Nível (23%)' : level === 2 ? '2º Nível (4%)' : '3º Nível (1%)';
+  const updated: UserState = {
+    ...referrer,
+    balance: parseFloat((referrer.balance + amount).toFixed(2)),
+    rechargeRecords: [
+      {
+        id: `comm_${Date.now()}_${level}`,
+        type: 'reward' as const,
+        amount,
+        status: 'success' as const,
+        timestamp: Date.now(),
+        description: `Comissão ${levelLabel} — indicado ${buyerPhone.substring(0, 8)}...`
+      },
+      ...referrer.rechargeRecords
+    ]
+  };
+  await saveUserToSupabase(updated);
+}
+
+/**
+ * Pays referral commissions (3 levels) when an invited user buys a plan.
+ * Level 1: 23% of plan price → direct referrer (referredBy of buyer)
+ * Level 2: 4%  of plan price → whoever referred the level-1 referrer
+ * Level 3: 1%  of plan price → whoever referred the level-2 referrer
+ *
+ * @param buyerReferredBy - the UID of who referred the buyer (buyer.referredBy)
+ * @param planPrice - the price of the plan purchased
+ * @param buyerPhone - buyer's email/phone for the log description
+ */
+export async function payReferralCommission(
+  buyerReferredBy: string,
+  planPrice: number,
+  buyerPhone: string
+): Promise<void> {
+  if (!buyerReferredBy || planPrice <= 0) return;
+
+  try {
+    // Level 1 — direct referrer (23%)
+    const level1 = await getUserByUid(buyerReferredBy);
+    if (!level1) return;
+    const comm1 = parseFloat((planPrice * 0.23).toFixed(2));
+    await creditCommission(level1, comm1, 1, buyerPhone);
+
+    // Level 2 — whoever referred level1 (4%)
+    if (level1.referredBy) {
+      const level2 = await getUserByUid(level1.referredBy);
+      if (level2) {
+        const comm2 = parseFloat((planPrice * 0.04).toFixed(2));
+        await creditCommission(level2, comm2, 2, buyerPhone);
+
+        // Level 3 — whoever referred level2 (1%)
+        if (level2.referredBy) {
+          const level3 = await getUserByUid(level2.referredBy);
+          if (level3) {
+            const comm3 = parseFloat((planPrice * 0.01).toFixed(2));
+            await creditCommission(level3, comm3, 3, buyerPhone);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error paying referral commission:', err);
+  }
+}

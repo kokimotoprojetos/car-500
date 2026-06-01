@@ -3,6 +3,7 @@ import { Gift, Wallet, ArrowDownCircle, Users, Award, Calendar, ChevronRight, Pl
 import { motion, AnimatePresence } from 'motion/react';
 import { UserState, InvestmentPackage } from '../../types';
 import { CAR_PACKAGES } from '../../data';
+import { payReferralCommission } from '../../lib/supabase';
 
 
 interface HomeTabProps {
@@ -65,7 +66,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
     if (!selectedProduct) return;
 
     if (user.balance < selectedProduct.price) {
-      triggerToast(`Saldo insuficiente para comprar ${selectedProduct.name}. O valor é de $${selectedProduct.price.toFixed(2)}.`);
+      triggerToast(`Saldo insuficiente para comprar ${selectedProduct.name}. O valor é de R$${selectedProduct.price.toFixed(2)}.`);
       setSelectedProduct(null);
       onNavigate('recharge');
       return;
@@ -104,6 +105,12 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
     onUpdateUser(updated);
     triggerToast(`${selectedProduct.name} ativado com sucesso! Iniciando mineração de lucros.`, 'success');
+
+    // Pay referral commissions if this user was referred
+    if (user.referredBy) {
+      payReferralCommission(user.referredBy, selectedProduct.price, user.phone);
+    }
+
     setSelectedProduct(null);
   };
 
@@ -369,43 +376,18 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
       {/* Primary Side-by-side Action row: Team Awards & Check-in */}
       <div className="px-4 mt-3">
         <div className="grid grid-cols-2 gap-3">
-          {/* Team Awards block mimicking the crowned award screenshot */}
+          {/* Team Awards block — shows real commission info */}
           <div
-            onClick={() => {
-              if (alreadyClaimedTeamAward) {
-                triggerToast('Você já coletou seu bônus de equipe hoje. Volte amanhã!');
-                return;
-              }
-              const reward = 50.0;
-              const updated = {
-                ...user,
-                balance: user.balance + reward,
-                rechargeRecords: [
-                  {
-                    id: `award_${Date.now()}`,
-                    type: 'reward' as const,
-                    amount: reward,
-                    status: 'success' as const,
-                    timestamp: Date.now(),
-                    description: 'Comissão de equipe (Simulado)'
-                  },
-                  ...user.rechargeRecords
-                ]
-              };
-              localStorage.setItem(teamAwardKey, todayStr());
-              onUpdateUser(updated);
-              triggerToast('Prêmios de Equipe: Bônus de indicação coletados com sucesso!', 'success');
-            }}
+            onClick={() => onNavigate('invite')}
             className="h-20 rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-500/10 p-3 flex justify-between items-center relative overflow-hidden cursor-pointer active:scale-98 transition-all"
           >
             <div className="z-10">
-              <h3 className="text-xs font-black text-slate-200">Prêmio de Equipe</h3>
-              <p className="text-[9px] text-[#06b6d4] font-semibold mt-1">Coletar Comissão</p>
+              <h3 className="text-xs font-black text-slate-200">Comissões</h3>
+              <p className="text-[9px] text-[#06b6d4] font-semibold mt-1">Ver meus indicados</p>
             </div>
             <div className="w-12 h-12 flex items-center justify-center rounded-full bg-indigo-500/10 border border-indigo-500/20 shrink-0 z-10 text-amber-500">
-              <Award size={22} className="animate-pulse" />
+              <Award size={22} />
             </div>
-            {/* Ambient indicator blur */}
             <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-indigo-500/20 rounded-full blur-xl pointer-events-none" />
           </div>
 
