@@ -122,19 +122,19 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
         <div className="grid grid-cols-3 gap-2">
           {/* Job deposit (investment cost totals) */}
           <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3 text-center space-y-1">
-            <span className="text-xs font-black text-slate-100 font-mono">${user.jobDeposit.toFixed(2)}</span>
+            <span className="text-xs font-black text-slate-100 font-mono">R${user.jobDeposit.toFixed(2)}</span>
             <span className="text-[9px] text-slate-500 font-semibold uppercase block truncate">Depósito Ativo</span>
           </div>
 
           {/* User withdrawals total */}
           <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3 text-center space-y-1">
-            <span className="text-xs font-black text-slate-100 font-mono">${user.totalWithdrawn.toFixed(2)}</span>
+            <span className="text-xs font-black text-slate-100 font-mono">R${user.totalWithdrawn.toFixed(2)}</span>
             <span className="text-[9px] text-slate-500 font-semibold uppercase block truncate">Meu Saque</span>
           </div>
 
           {/* Cash balance */}
           <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-3 text-center space-y-1">
-            <span className="text-xs font-black text-cyan-400 font-mono">${user.balance.toFixed(2)}</span>
+            <span className="text-xs font-black text-cyan-400 font-mono">R${user.balance.toFixed(2)}</span>
             <span className="text-[9px] text-slate-500 font-semibold uppercase block truncate">Disponível</span>
           </div>
         </div>

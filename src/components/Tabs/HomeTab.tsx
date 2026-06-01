@@ -276,7 +276,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
           <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
             <span className="text-3xl font-black text-cyan-400 font-mono">
-              ${user.balance.toFixed(2)}
+              R${user.balance.toFixed(2)}
             </span>
             <button
               onClick={() => onNavigate('recharge')}
@@ -325,11 +325,11 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
                   <div className="space-y-1 text-slate-400 font-bold">
                     <div className="text-xs flex items-center justify-between border-b border-slate-800/40 pb-1">
                       <span>Rendimento Diário</span>
-                      <span className="text-cyan-400 font-mono text-xs">+${pkg.dailyProfit.toFixed(2)}</span>
+                      <span className="text-cyan-400 font-mono text-xs">+R${pkg.dailyProfit.toFixed(2)}</span>
                     </div>
                     <div className="text-xs flex items-center justify-between border-b border-slate-800/40 pb-1">
                       <span>Rendimento Total</span>
-                      <span className="text-slate-300 font-mono text-xs">${pkg.totalProfit.toFixed(2)}</span>
+                      <span className="text-slate-300 font-mono text-xs">R${pkg.totalProfit.toFixed(2)}</span>
                     </div>
                     <div className="text-xs flex items-center justify-between pb-1">
                       <span>Período de Validade</span>
@@ -342,9 +342,8 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
                   <div className="pt-2 flex items-baseline gap-1">
                     <span className="text-2xl font-black text-slate-100 font-mono">
-                      ${pkg.price.toFixed(0)}
+                      R${pkg.price.toFixed(0)}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold">USDT</span>
                   </div>
                 </div>
 
@@ -410,7 +409,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             onClick={() => {
               // Copy custom link simulation
               navigator.clipboard?.writeText(window.location.href);
-              triggerToast('Link de convite do Clube 500CAR copiado com sucesso!', 'success');
+              triggerToast('Link copiado! Bônus de Indicação: 1º Nível: 23% | 2º Nível: 4% | 3º Nível: 1%', 'success');
             }}
             className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
           >
@@ -440,7 +439,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           {/* Team Awards block mimicking the crowned award screenshot */}
           <div
             onClick={() => {
-              triggerToast('Prêmios de Equipe: Você possui 3 membros sob convite ativo! Recompensa simulada de +$50.00 acumulada.', 'success');
+              triggerToast('Prêmios de Equipe: Bônus de indicação (1º Nível: 23% | 2º Nível: 4% | 3º Nível: 1%) coletados com sucesso!', 'success');
               const updated = {
                 ...user,
                 balance: user.balance + 50.0,

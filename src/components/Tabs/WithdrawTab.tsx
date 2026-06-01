@@ -24,18 +24,18 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
       return;
     }
 
-    if (val < 15.0) {
-      triggerToast('O valor mínimo para saques simulados é de $15.00.');
+    if (val < 10.0) {
+      triggerToast('O valor mínimo para saques simulados é de R$10,00.');
       return;
     }
 
     if (user.balance < val) {
-      triggerToast(`Saldo insuficiente. Você possui apenas $${user.balance.toFixed(2)}.`);
+      triggerToast(`Saldo insuficiente. Você possui apenas R$${user.balance.toFixed(2)}.`);
       return;
     }
 
     if (!destAddress.trim()) {
-      triggerToast('Insira o endereço de destino (USDT ou Chave Pix).');
+      triggerToast('Insira o endereço de destino (Chave Pix ou correspondente).');
       return;
     }
 
@@ -57,7 +57,7 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
       updated.withdrawRecords = [newRecord, ...updated.withdrawRecords];
       onUpdateUser(updated);
 
-      triggerToast(`Saque de $${val.toFixed(2)} solicitado com sucesso!`, 'success');
+      triggerToast(`Saque de R$${val.toFixed(2)} solicitado com sucesso!`, 'success');
       setLoading(false);
       setAmount('');
       setDestAddress('');
@@ -84,7 +84,7 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
     }, 1200);
   };
 
-  const taxRate = 0.18; // 18% standard fee processing
+  const taxRate = 0.10; // 10% fee processing
   const wdAmount = parseFloat(amount) || 0;
   const computedFee = wdAmount * taxRate;
   const netAmount = Math.max(0, wdAmount - computedFee);
@@ -113,9 +113,9 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
             <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Saldo Disponível para Saque</span>
             <div className="flex justify-between items-baseline">
               <span className="text-xl font-black text-slate-100 font-mono">
-                ${user.balance.toFixed(2)} <span className="text-xs text-slate-500 font-semibold font-sans">USDT</span>
+                R${user.balance.toFixed(2)}
               </span>
-              <span className="text-[10px] text-slate-500 font-bold uppercase">Mínimo: $15.00</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase">Mínimo: R$10,00</span>
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
             </label>
             <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-orange-500/50 transition-all">
               <span className="text-slate-500 font-bold text-sm mr-2 shrink-0">
-                $
+                R$
               </span>
               <input
                 type="number"
@@ -136,18 +136,17 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
                 className="flex-1 bg-transparent border-none text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-0 leading-none h-full"
                 required
               />
-              <span className="text-xs text-slate-500 font-bold">USDT</span>
             </div>
           </div>
 
           {/* Destination inputs */}
           <div className="space-y-1.5">
             <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
-              Chave Pix / Endereço TRC-20
+              Chave Pix / Pix Key
             </label>
             <input
               type="text"
-              placeholder="Digite a chave ou endereço da carteira"
+              placeholder="Digite a sua Chave Pix para o recebimento"
               value={destAddress}
               onChange={(e) => setDestAddress(e.target.value)}
               className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
@@ -171,12 +170,12 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
           {/* Fee estimate grid */}
           <div className="bg-slate-950 rounded-xl p-3 divide-y divide-slate-800/60 text-xs font-semibold text-slate-400 space-y-1.5">
             <div className="flex justify-between pb-1.5">
-              <span>Taxa de Saque (18%):</span>
-              <span className="text-slate-200 font-mono">${computedFee.toFixed(2)}</span>
+              <span>Taxa de Saque (10%):</span>
+              <span className="text-slate-200 font-mono">R${computedFee.toFixed(2)}</span>
             </div>
             <div className="flex justify-between pt-1.5">
               <span>Valor Líquido Estimado:</span>
-              <span className="text-emerald-400 font-mono font-bold">${netAmount.toFixed(2)}</span>
+              <span className="text-emerald-400 font-mono font-bold">R${netAmount.toFixed(2)}</span>
             </div>
           </div>
 
@@ -195,9 +194,10 @@ export default function WithdrawTab({ user, onUpdateUser, triggerToast, onNaviga
             <HelpCircle size={14} className="text-orange-400" /> Diretrizes de Retirada
           </h4>
           <ol className="list-decimal pl-4 space-y-2 text-[10px] text-slate-500 leading-relaxed font-semibold">
-            <li>Os saques são aprovados na simulação instantaneamente, simulando transferência real.</li>
-            <li>A taxa fixa de 18% é debitada para a cobertura de custos de processamento blockchain.</li>
-            <li>Certifique-se de preencher a chave correta para garantir a entrega rápida dos recursos de demonstração.</li>
+            <li>Os saques são simulados de forma instantânea para a chave Pix informada.</li>
+            <li>Taxa fixa de 10% aplicada sobre o valor do saque.</li>
+            <li>Horário de Retiradas: Funcionamento 24h por dia, 7 dias por semana.</li>
+            <li>Valor mínimo para solicitação de saques: R$10,00.</li>
           </ol>
         </div>
       </div>

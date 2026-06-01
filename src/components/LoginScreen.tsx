@@ -58,7 +58,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const initialUser = {
         uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
         phone: fullPhone,
-        balance: 0.0,
+        balance: 16.0,
         jobDeposit: 0.0,
         totalWithdrawn: 0.0,
         vipLevel: 'Bronze',
@@ -70,7 +70,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         passwordHash: password
       };
       localStorage.setItem(userKey, JSON.stringify(initialUser));
-      triggerToast('Conta simulada criada com sucesso! Faça login.', 'success');
+      triggerToast('Conta criada! Você ganhou bônus de R$16! Faça login.', 'success');
       setTimeout(() => {
         setIsRegistering(false);
       }, 1000);
@@ -82,7 +82,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         const defaultUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
           phone: fullPhone,
-          balance: 200.0, // Give them $200.00 credit automatically so they can try packages out of the box!
+          balance: 16.0, // Give them R$16.00 credit automatically so they can try packages out of the box!
           jobDeposit: 0.0,
           totalWithdrawn: 0.0,
           vipLevel: 'Bronze',
@@ -94,7 +94,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           passwordHash: password
         };
         localStorage.setItem(userKey, JSON.stringify(defaultUser));
-        triggerToast('Nova conta simulada ativada com saldo bônus de $200!', 'success');
+        triggerToast('Nova conta simulada ativada com saldo bônus de R$16!', 'success');
         setTimeout(() => {
           onLoginSuccess(fullPhone);
         }, 1200);
