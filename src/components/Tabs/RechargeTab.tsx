@@ -397,19 +397,6 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                       required
                     />
                   </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs uppercase tracking-widest text-slate-500 font-bold block">
-                      E-mail (Opcional)
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="seuemail@exemplo.com"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      className="w-full h-14 bg-slate-900 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-700/80"
-                    />
-                  </div>
                 </div>
 
                 {/* Preset grids matching the specific screenshots */}

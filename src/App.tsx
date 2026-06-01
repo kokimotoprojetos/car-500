@@ -279,15 +279,15 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex-1 flex flex-col h-full bg-[#070b19] relative"
+            className="flex-1 flex flex-col h-full bg-[#070b19] overflow-hidden"
           >
-            {/* Viewport page container */}
-            <div className="flex-1 flex flex-col overflow-y-auto">
+            {/* Scrollable content area — leaves space for the fixed bottom nav */}
+            <div className="flex-1 flex flex-col overflow-y-auto pb-20">
               {renderActiveTab()}
             </div>
 
-            {/* Bottom Tab Navigation Bar mimicking screenshots 2, 3, 6 */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-4 flex items-center justify-between shrink-0 z-40 select-none">
+            {/* Bottom Tab Navigation Bar — always visible, never needs scrolling */}
+            <div className="h-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-4 flex items-center justify-between shrink-0 z-40 select-none">
               
               {/* Home Tab Trigger */}
               <button
