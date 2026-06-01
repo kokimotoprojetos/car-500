@@ -16,6 +16,18 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
+    if (!user || user.balance !== 16.0 || (user.activeInvestments && user.activeInvestments.length > 0)) {
+      return false;
+    }
+    const welcomed = localStorage.getItem(`welcomed_${user.phone}`);
+    return welcomed !== 'true';
+  });
+
+  const handleCloseWelcome = () => {
+    localStorage.setItem(`welcomed_${user.phone}`, 'true');
+    setShowWelcomeModal(false);
+  };
 
   const handleBuyPackage = () => {
     if (!selectedProduct) return;
@@ -483,6 +495,92 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
                   Confirmar
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Welcome Bonus Modal with Confetti */}
+      <AnimatePresence>
+        {showWelcomeModal && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[120] flex items-center justify-center p-6 select-none font-sans">
+            {/* Confetti container */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              {Array.from({ length: 40 }).map((_, i) => {
+                const colors = ['#22d3ee', '#3b82f6', '#f59e0b', '#10b981', '#ec4899'];
+                const size = Math.random() * 8 + 4;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const delay = Math.random() * 2;
+                const duration = Math.random() * 3 + 2.5;
+                const left = Math.random() * 100;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ y: -20, x: `${left}%`, rotate: 0, opacity: 1 }}
+                    animate={{
+                      y: '100vh',
+                      x: `${left + (Math.random() * 20 - 10)}%`,
+                      rotate: 360,
+                      opacity: 0
+                    }}
+                    transition={{
+                      duration: duration,
+                      delay: delay,
+                      ease: 'linear',
+                      repeat: Infinity
+                    }}
+                    style={{
+                      position: 'absolute',
+                      width: size,
+                      height: size,
+                      backgroundColor: color,
+                      borderRadius: Math.random() > 0.5 ? '50%' : '0%'
+                    }}
+                  />
+                );
+              })}
+            </div>
+
+            <motion.div
+              initial={{ scale: 0.8, y: 50, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.8, y: 50, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+              className="w-full max-w-sm bg-slate-900 border border-cyan-500/20 rounded-[32px] p-6 text-center shadow-2xl relative overflow-hidden"
+            >
+              {/* Radial gradient glow */}
+              <div className="absolute -top-10 -left-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="w-20 h-20 rounded-full bg-cyan-950/80 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400 mb-4 animate-bounce">
+                🎉
+              </div>
+
+              <h2 className="text-2xl font-black text-slate-100 tracking-tight uppercase">
+                Parabéns!
+              </h2>
+              <p className="text-xs text-cyan-400 font-bold mt-1 uppercase tracking-widest">
+                Clube VIP 500CAR
+              </p>
+
+              <div className="my-6 p-5 bg-slate-950 border border-slate-850 rounded-2xl">
+                <p className="text-xs font-semibold text-slate-400 leading-normal">
+                  Sua conta foi ativada com sucesso e você recebeu um bônus inicial de:
+                </p>
+                <div className="text-3xl font-black text-emerald-400 font-mono mt-2 tracking-tight">
+                  R$ 16,00
+                </div>
+                <p className="text-[10px] text-slate-500 font-bold uppercase mt-2">
+                  Saldo já liberado na sua carteira
+                </p>
+              </div>
+
+              <button
+                onClick={handleCloseWelcome}
+                className="w-full h-13 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-black text-sm rounded-xl tracking-wider uppercase active:scale-95 transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
+              >
+                Começar a ganhar
+              </button>
             </motion.div>
           </div>
         )}
