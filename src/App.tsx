@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Car, Headphones, User, AlertCircle, Sparkles, HelpCircle, Coins } from 'lucide-react';
+import { Home, Car, Headphones, User, AlertCircle, Sparkles, HelpCircle, Coins, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Subcomponents
@@ -197,15 +197,15 @@ export default function App() {
                 <span>Home</span>
               </button>
 
-              {/* Packages Tab Trigger */}
+              {/* Recharge/Wallet Tab Trigger */}
               <button
-                onClick={() => setActiveTab('packages')}
+                onClick={() => setActiveTab('recharge')}
                 className={`flex flex-col items-center gap-1 py-1 px-2.5 transition-all text-xs font-semibold ${
-                  activeTab === 'packages' ? 'text-cyan-400 font-extrabold scale-105' : 'text-slate-500 hover:text-slate-400'
+                  activeTab === 'recharge' ? 'text-cyan-400 font-extrabold scale-105' : 'text-slate-500 hover:text-slate-400'
                 }`}
               >
-                <Car size={20} className={activeTab === 'packages' ? 'stroke-2' : 'stroke-1'} />
-                <span>Frota</span>
+                <Wallet size={20} className={activeTab === 'recharge' ? 'stroke-2' : 'stroke-1'} />
+                <span>Carteira</span>
               </button>
 
               {/* Central stylized action button with double curved "S" pattern in circle */}
