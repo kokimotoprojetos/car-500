@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Gift, Wallet, ArrowDownCircle, Users, Download, Award, Calendar, ChevronRight, Play, Coins, ShieldCheck, Car, Hourglass, ShoppingBag, ShieldAlert } from 'lucide-react';
+import { Gift, Wallet, ArrowDownCircle, Users, Award, Calendar, ChevronRight, Play, Coins, ShieldCheck, Car, Hourglass, ShoppingBag, ShieldAlert } from 'lucide-react';
 import { motion, useAnimation, AnimatePresence } from 'motion/react';
 import { UserState, InvestmentPackage } from '../../types';
 import { ROULETTE_SECTORS, CAR_PACKAGES } from '../../data';
@@ -270,9 +270,9 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
         </div>
       </div>
 
-      {/* Grid of Quick Actions buttons (Coupon, Recharge, Withdraw, Invite, APP) */}
+      {/* Grid of Quick Actions buttons (Coupon, Recharge, Withdraw, Invite) */}
       <div className="px-4 mt-4">
-        <div className="grid grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-4 gap-1.5">
           <button
             onClick={() => setShowCouponModal(true)}
             className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
@@ -315,18 +315,6 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
               <Users size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-300">Convidar</span>
-          </button>
-
-          <button
-            onClick={() => {
-              triggerToast('Download do aplicativo iniciado na máquina virtual!', 'success');
-            }}
-            className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Download size={18} />
-            </div>
-            <span className="text-[10px] font-bold text-slate-300">Aplicativo</span>
           </button>
         </div>
       </div>
