@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Car, Headphones, User, AlertCircle, Sparkles, HelpCircle, Coins, Wallet } from 'lucide-react';
+import { Home, Car, Headphones, User, AlertCircle, Sparkles, HelpCircle, Coins, Wallet, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Subcomponents
@@ -14,6 +14,7 @@ import RechargeTab from './components/Tabs/RechargeTab';
 import SupportTab from './components/Tabs/SupportTab';
 import ProfileTab from './components/Tabs/ProfileTab';
 import WithdrawTab from './components/Tabs/WithdrawTab';
+import InviteTab from './components/Tabs/InviteTab';
 
 import { UserState } from './types';
 
@@ -152,6 +153,14 @@ export default function App() {
             onNavigate={setActiveTab}
           />
         );
+      case 'invite':
+        return (
+          <InviteTab
+            user={user}
+            triggerToast={triggerToast}
+            onNavigate={setActiveTab}
+          />
+        );
       default:
         return <HomeTab user={user} onUpdateUser={handleUpdateUser} onNavigate={setActiveTab} triggerToast={triggerToast} />;
     }
@@ -208,22 +217,16 @@ export default function App() {
                 <span>Carteira</span>
               </button>
 
-              {/* Central stylized action button with double curved "S" pattern in circle */}
+              {/* Central stylized action button that triggers the Invite/Referrals tab */}
               <button
                 onClick={() => {
-                  // Interactive flow: Clicking center quick action triggers instant balance boost bonus sequence!
-                  // It represents the central transfer/swap utility and delights the user!
-                  const updated = {
-                    ...user,
-                    spinTurns: user.spinTurns + 1
-                  };
-                  handleUpdateUser(updated);
-                  triggerToast('Bônus Concedido! +1 Giro Grátis na Roleta da Sorte!', 'success');
-                  setActiveTab('home');
+                  setActiveTab('invite');
                 }}
-                className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/20 flex items-center justify-center -mt-6 border-4 border-slate-950 active:scale-90 hover:scale-105 transition-all cursor-pointer group z-50 text-slate-950"
+                className={`w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 shadow-xl shadow-cyan-500/20 flex items-center justify-center -mt-6 border-4 active:scale-90 hover:scale-105 transition-all cursor-pointer group z-50 ${
+                  activeTab === 'invite' ? 'border-cyan-400 text-cyan-400 bg-slate-950' : 'border-slate-950 text-slate-950'
+                }`}
               >
-                <Coins size={22} className="group-hover:rotate-12 transition-transform duration-300" />
+                <Users size={22} className="group-hover:rotate-12 transition-transform duration-300" />
               </button>
 
               {/* Online Service Tab Trigger */}
