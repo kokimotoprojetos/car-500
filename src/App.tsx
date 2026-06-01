@@ -281,8 +281,8 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="flex-1 flex flex-col h-full bg-[#070b19] overflow-hidden"
           >
-            {/* Scrollable content area — leaves space for the fixed bottom nav */}
-            <div className="flex-1 flex flex-col overflow-y-auto pb-20">
+            {/* Scrollable content area */}
+            <div className="flex-1 flex flex-col overflow-y-auto">
               {renderActiveTab()}
             </div>
 
