@@ -34,6 +34,14 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     }, 3000);
   };
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('pending_invite_referrer', ref);
+    }
+  }, []);
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || phone.trim().length < 6) {
@@ -55,6 +63,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         return;
       }
       // Register new simulation profile with default balance
+      const referrer = localStorage.getItem('pending_invite_referrer') || '';
       const initialUser = {
         uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
         phone: fullPhone,
@@ -67,7 +76,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         rechargeRecords: [],
         withdrawRecords: [],
         activeInvestments: [],
-        passwordHash: password
+        passwordHash: password,
+        referredBy: referrer,
+        createdAt: Date.now()
       };
       localStorage.setItem(userKey, JSON.stringify(initialUser));
       triggerToast('Conta criada! Você ganhou bônus de R$16! Faça login.', 'success');
@@ -79,6 +90,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       if (!existing) {
         // Create user anyway to make testing smooth and foolproof for the user,
         // but notify them! It is extremely elegant to support automatic quick-entry.
+        const referrer = localStorage.getItem('pending_invite_referrer') || '';
         const defaultUser = {
           uid: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
           phone: fullPhone,
@@ -91,7 +103,9 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           rechargeRecords: [],
           withdrawRecords: [],
           activeInvestments: [],
-          passwordHash: password
+          passwordHash: password,
+          referredBy: referrer,
+          createdAt: Date.now()
         };
         localStorage.setItem(userKey, JSON.stringify(defaultUser));
         triggerToast('Nova conta simulada ativada com saldo bônus de R$16!', 'success');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Copy, Check, Gift, Award, TrendingUp, HelpCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { UserState } from '../../types';
@@ -13,6 +13,34 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
   const [copied, setCopied] = useState(false);
   const inviteCode = user.uid || `500C_${user.phone}`;
   const inviteLink = `https://www.500carinvestl.xyz/?ref=${inviteCode}`;
+
+  const [referredUsers, setReferredUsers] = useState<{ phone: string; vipLevel: string; date: string }[]>([]);
+
+  // Scan localStorage on mount for users registered using this referral ID
+  useEffect(() => {
+    const list: { phone: string; vipLevel: string; date: string }[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('user_state_')) {
+        try {
+          const val = localStorage.getItem(key);
+          if (val) {
+            const parsed = JSON.parse(val);
+            if (parsed.referredBy === inviteCode || parsed.referredBy === user.uid) {
+              list.push({
+                phone: parsed.phone,
+                vipLevel: parsed.vipLevel || 'Bronze',
+                date: new Date(parsed.createdAt || Date.now()).toLocaleDateString('pt-BR')
+              });
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    setReferredUsers(list);
+  }, [inviteCode, user.uid]);
 
   const handleCopyLink = () => {
     navigator.clipboard?.writeText(inviteLink);
@@ -109,6 +137,33 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
           </div>
         </div>
 
+        {/* List of Referred Users */}
+        <div className="bg-slate-900/40 border border-slate-850 rounded-2xl p-4 space-y-3">
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5 border-b border-slate-850 pb-2">
+            <Users size={14} className="text-cyan-400" /> Usuários Indicados Cadastrados
+          </h4>
+
+          {referredUsers.length === 0 ? (
+            <div className="text-center py-6 text-slate-500 font-semibold text-xs">
+              Nenhum usuário cadastrado pelo seu link de convite ainda.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              {referredUsers.map((refUser, idx) => (
+                <div key={idx} className="flex justify-between items-center bg-slate-950 border border-slate-850/50 p-2.5 rounded-xl text-xs font-bold text-slate-350">
+                  <div className="flex flex-col">
+                    <span className="text-slate-200">{refUser.phone}</span>
+                    <span className="text-[9px] text-slate-500 font-medium">Data de Cadastro: {refUser.date}</span>
+                  </div>
+                  <span className="text-[10px] bg-cyan-950 border border-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-mono">
+                    VIP {refUser.vipLevel}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Network performance stats (Simulated stats to look alive) */}
         <div className="bg-slate-900/40 border border-slate-850 rounded-2xl p-4 space-y-3">
           <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5 border-b border-slate-850 pb-2">
@@ -120,7 +175,7 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Indicados Nível 1 (Diretos)
               </span>
-              <span className="text-slate-200 font-mono font-bold">2 convidados (R$ 46,00 ganho)</span>
+              <span className="text-slate-200 font-mono font-bold">{referredUsers.length} convidados</span>
             </div>
             <div className="flex justify-between py-2 items-center">
               <span className="flex items-center gap-1.5">
