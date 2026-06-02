@@ -2,15 +2,6 @@ import { InvestmentPackage } from './types';
 
 export const CAR_PACKAGES: InvestmentPackage[] = [
   {
-    id: 'car_test',
-    name: 'Plano Teste',
-    dailyProfit: 3.00,
-    totalProfit: 270.00,
-    validityDays: 90,
-    price: 15.00,
-    image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?auto=format&fit=crop&q=80&w=600' // test car
-  },
-  {
     id: 'car_1',
     name: '500Car VIP 1',
     dailyProfit: 11.00,
