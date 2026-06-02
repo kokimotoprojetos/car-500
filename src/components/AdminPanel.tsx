@@ -287,8 +287,11 @@ export default function AdminPanel() {
         }
         showToast('Pix enviado com sucesso pela LytronPay!');
       } catch (err: any) {
-        alert(`Falha no pagamento automático (LytronPay): ${err.message || err}\n\nO saque NÃO foi aprovado no banco de dados. Resolva o erro da API ou saldo do gateway e tente novamente.`);
-        return;
+        console.error(err);
+        const errMsg = err.message || err;
+        if (!window.confirm(`Falha no pagamento automático (LytronPay): ${errMsg}\n\nMotivo comum: O IP de onde você está acessando precisa ser autorizado no painel da LytronPay para cashout.\n\nDeseja realizar o Pix manualmente (pelo seu banco/gateway) e APROVAR o saque no banco de dados mesmo assim?`)) {
+          return;
+        }
       }
     }
 
