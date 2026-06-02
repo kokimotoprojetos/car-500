@@ -19,6 +19,52 @@ import { UserState } from './types';
 import { saveUserToSupabase, getUserFromSupabase } from './lib/supabase';
 import AdminPanel from './components/AdminPanel';
 
+/**
+ * Calculates and applies offline passive earnings based on the elapsed time
+ * since the investment was bought, minus the earnings already accumulated online.
+ */
+function syncOfflineEarnings(user: UserState): UserState {
+  if (!user.activeInvestments || user.activeInvestments.length === 0) {
+    return user;
+  }
+
+  let missingEarnings = 0;
+  const now = Date.now();
+
+  const syncedInvestments = user.activeInvestments.map(inv => {
+    // Check elapsed seconds up to the maximum validity of the plan
+    const totalDurationSecs = inv.validityDays * 24 * 60 * 60;
+    const elapsedSecs = Math.min((now - inv.boughtAt) / 1000, totalDurationSecs);
+    
+    if (elapsedSecs <= 0) return inv;
+
+    // Expected total earnings up to this exact second
+    const expectedTotal = elapsedSecs * (inv.dailyProfit / 86400);
+    // Cap at the maximum total profit the plan can yield
+    const cappedTotal = Math.min(expectedTotal, inv.totalProfit);
+    
+    // How much the user missed while offline
+    const missing = cappedTotal - (inv.accumulated || 0);
+    
+    if (missing > 0) {
+      missingEarnings += missing;
+      return { ...inv, accumulated: cappedTotal };
+    }
+    
+    return inv;
+  });
+
+  if (missingEarnings > 0) {
+    return {
+      ...user,
+      balance: parseFloat((user.balance + missingEarnings).toFixed(6)),
+      activeInvestments: syncedInvestments
+    };
+  }
+
+  return user;
+}
+
 export default function App() {
   const isAdminRoute = window.location.pathname === '/oculto';
   const [user, setUser] = useState<UserState | null>(null);
@@ -49,17 +95,22 @@ export default function App() {
         if (dbUser.balance === 16.0 && (!dbUser.rechargeRecords || dbUser.rechargeRecords.length === 0)) {
           dbUser.balance = 0.0;
           dbUser.bonusBalance = 16.0;
-          await saveUserToSupabase(dbUser);
         }
-        dbUser.isLoggedIn = true;
-        setUser(dbUser);
-        localStorage.setItem(`user_state_${persistedPhone}`, JSON.stringify(dbUser));
+
+        // Apply offline earnings synchronization
+        const syncedUser = syncOfflineEarnings(dbUser);
+        await saveUserToSupabase(syncedUser);
+
+        syncedUser.isLoggedIn = true;
+        setUser(syncedUser);
+        localStorage.setItem(`user_state_${persistedPhone}`, JSON.stringify(syncedUser));
       } else {
         // Fallback: use cached local state
         const cached = localStorage.getItem(`user_state_${persistedPhone}`);
         if (cached) {
           try {
-            const parsed = JSON.parse(cached);
+            let parsed = JSON.parse(cached);
+            parsed = syncOfflineEarnings(parsed);
             parsed.isLoggedIn = true;
             setUser(parsed);
           } catch { /* ignore */ }
@@ -88,14 +139,27 @@ export default function App() {
         let incrementSum = 0;
         const now = Date.now();
         
-        current.activeInvestments.forEach((inv) => {
+        const updatedInvestments = current.activeInvestments.map((inv) => {
           // Profit per second = dailyProfit / 86400
-          incrementSum += inv.dailyProfit / 86400;
+          const profitPerSec = inv.dailyProfit / 86400;
+          
+          // Check if plan expired
+          const daysSinceBought = (now - inv.boughtAt) / (1000 * 60 * 60 * 24);
+          if (daysSinceBought > inv.validityDays) {
+            return inv;
+          }
+
+          incrementSum += profitPerSec;
+          return {
+            ...inv,
+            accumulated: (inv.accumulated || 0) + profitPerSec
+          };
         });
 
         const nextBalance = current.balance + incrementSum;
         const updated = {
           ...current,
+          activeInvestments: updatedInvestments,
           balance: parseFloat(nextBalance.toFixed(6))
         };
 
@@ -136,12 +200,15 @@ export default function App() {
       if (dbUser.balance === 16.0 && (!dbUser.rechargeRecords || dbUser.rechargeRecords.length === 0)) {
         dbUser.balance = 0.0;
         dbUser.bonusBalance = 16.0;
-        await saveUserToSupabase(dbUser);
       }
 
-      dbUser.isLoggedIn = true;
-      setUser(dbUser);
-      localStorage.setItem(`user_state_${phoneNumber}`, JSON.stringify(dbUser));
+      // Apply offline earnings synchronization
+      const syncedUser = syncOfflineEarnings(dbUser);
+      await saveUserToSupabase(syncedUser);
+
+      syncedUser.isLoggedIn = true;
+      setUser(syncedUser);
+      localStorage.setItem(`user_state_${phoneNumber}`, JSON.stringify(syncedUser));
       setActiveTab('home');
       triggerToast('Acesso Premium Liberado!', 'success');
     } else {
@@ -149,7 +216,8 @@ export default function App() {
       const userKey = `user_state_${phoneNumber}`;
       const stored = localStorage.getItem(userKey);
       if (stored) {
-        const parsed = JSON.parse(stored);
+        let parsed = JSON.parse(stored);
+        parsed = syncOfflineEarnings(parsed);
         parsed.isLoggedIn = true;
         setUser(parsed);
         localStorage.setItem(userKey, JSON.stringify(parsed));
