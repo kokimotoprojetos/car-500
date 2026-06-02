@@ -21,6 +21,8 @@ function todayStr() {
 export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }: HomeTabProps) {
   const [showSubscriptionsModal, setShowSubscriptionsModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [showCouponModal, setShowCouponModal] = useState(false);
 
   // Welcome bonus modal — shown only the FIRST time (new registration)
   const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
