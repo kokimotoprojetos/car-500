@@ -89,6 +89,11 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
         <div className="flex items-center gap-4">
           {/* Avatar frame */}
           <div className="w-14 h-14 rounded-full border-2 border-cyan-500/30 p-1 bg-slate-950 flex items-center justify-center relative shadow-lg">
+            {user.isLeader && user.withdrawRecords?.some(rec => rec.status === 'pending') && (
+              <span className="absolute -top-4.5 left-1/2 -translate-x-1/2 text-xl animate-bounce z-10" title="Líder com saque solicitado">
+                👑
+              </span>
+            )}
             <div className="w-full h-full rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-100 font-extrabold text-base uppercase">
               {user.phone.slice(-2)}
             </div>
