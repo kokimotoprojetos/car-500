@@ -281,7 +281,14 @@ export default function AdminPanel() {
           body: rawBody
         });
 
-        const resData = await response.json();
+        const resText = await response.text();
+        let resData: any = {};
+        try {
+          resData = JSON.parse(resText);
+        } catch (e) {
+          throw new Error(`Servidor não retornou JSON (HTTP ${response.status}): ${resText.substring(0, 150)}`);
+        }
+
         if (!response.ok) {
           throw new Error(resData.message || 'Erro ao realizar Pix pela LytronPay.');
         }
