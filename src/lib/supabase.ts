@@ -88,12 +88,14 @@ export async function saveUserToSupabase(user: UserState): Promise<boolean> {
       .upsert(payload, { onConflict: 'phone' });
 
     if (error) {
-      console.error('Error saving user to Supabase:', error.message);
+      console.error('Error saving user to Supabase:', error.message, error.details, error.hint);
+      alert(`Erro Supabase: ${error.message}\nDetalhes: ${error.details || 'Sem detalhes'}\nDica: ${error.hint || 'Nenhuma'}`);
       return false;
     }
     return true;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to sync user with Supabase:', err);
+    alert(`Falha ao conectar com o Supabase: ${err?.message || String(err)}`);
     return false;
   }
 }
