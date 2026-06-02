@@ -24,7 +24,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
   // Welcome bonus modal — shown only the FIRST time (new registration)
   const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
-    if (!user || user.balance !== 16.0 || (user.activeInvestments && user.activeInvestments.length > 0)) {
+    if (!user || user.bonusBalance !== 16.0 || (user.activeInvestments && user.activeInvestments.length > 0)) {
       return false;
     }
     const welcomed = localStorage.getItem(`welcomed_${user.phone}`);

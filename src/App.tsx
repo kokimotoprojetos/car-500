@@ -43,8 +43,14 @@ export default function App() {
       return;
     }
     // Try to restore session from Supabase, fallback to localStorage cache
-    getUserFromSupabase(persistedPhone).then((dbUser) => {
+    getUserFromSupabase(persistedPhone).then(async (dbUser) => {
       if (dbUser) {
+        // Migrate legacy 16.0 principal balance to bonus balance if no recharges have been made
+        if (dbUser.balance === 16.0 && (!dbUser.rechargeRecords || dbUser.rechargeRecords.length === 0)) {
+          dbUser.balance = 0.0;
+          dbUser.bonusBalance = 16.0;
+          await saveUserToSupabase(dbUser);
+        }
         dbUser.isLoggedIn = true;
         setUser(dbUser);
         localStorage.setItem(`user_state_${persistedPhone}`, JSON.stringify(dbUser));
@@ -126,6 +132,13 @@ export default function App() {
   const handleLoginSuccess = async (phoneNumber: string) => {
     const dbUser = await getUserFromSupabase(phoneNumber);
     if (dbUser) {
+      // Migrate legacy 16.0 principal balance to bonus balance if no recharges have been made
+      if (dbUser.balance === 16.0 && (!dbUser.rechargeRecords || dbUser.rechargeRecords.length === 0)) {
+        dbUser.balance = 0.0;
+        dbUser.bonusBalance = 16.0;
+        await saveUserToSupabase(dbUser);
+      }
+
       dbUser.isLoggedIn = true;
       setUser(dbUser);
       localStorage.setItem(`user_state_${phoneNumber}`, JSON.stringify(dbUser));
