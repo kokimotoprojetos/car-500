@@ -19,8 +19,7 @@ function todayStr() {
 }
 
 export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }: HomeTabProps) {
-  const [showCouponModal, setShowCouponModal] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
+  const [showSubscriptionsModal, setShowSubscriptionsModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<InvestmentPackage | null>(null);
 
   // Welcome bonus modal — shown only the FIRST time (new registration)
@@ -250,13 +249,13 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
       <div className="px-4 mt-4">
         <div className="grid grid-cols-4 gap-1.5">
           <button
-            onClick={() => setShowCouponModal(true)}
+            onClick={() => setShowSubscriptionsModal(true)}
             className="flex flex-col items-center gap-1.5 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl active:scale-95 transition-all"
           >
             <div className="w-9 h-9 rounded-xl bg-cyan-950/80 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Gift size={18} />
+              <Car size={18} />
             </div>
-            <span className="text-[10px] font-bold text-slate-300">Cupom</span>
+            <span className="text-[10px] font-bold text-slate-300">Assinaturas</span>
           </button>
 
           <button
@@ -416,44 +415,61 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
       </div>
 
 
-      {/* Interactive Coupon Modal */}
+      {/* Interactive Subscriptions Modal */}
       <AnimatePresence>
-        {showCouponModal && (
+        {showSubscriptionsModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative"
+              className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative flex flex-col max-h-[80vh]"
             >
-              <h3 className="text-base font-black text-slate-100 mb-2">Usar Cupom de Recompensa</h3>
-              <p className="text-xs text-slate-400 mb-4">Insira um código válido para adicionar fundos.</p>
-              
-              <form onSubmit={handleApplyCoupon} className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Ex: 500CARVIP"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="w-full h-11 bg-slate-950 border border-slate-800 rounded-xl px-4 text-sm text-slate-100 focus:outline-none focus:border-cyan-500/40 uppercase font-mono"
-                  required
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowCouponModal(false)}
-                    className="flex-1 h-11 bg-slate-950 border border-slate-800 text-slate-400 font-semibold text-xs rounded-xl hover:text-slate-200 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 h-11 bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-bold text-xs rounded-xl"
-                  >
-                    Confirmar
-                  </button>
-                </div>
-              </form>
+              <h3 className="text-base font-black text-slate-100 mb-1">Minhas Assinaturas</h3>
+              <p className="text-xs text-slate-400 mb-4 font-semibold">Lista de planos ativos minerando rendimentos.</p>
+
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                {!user.activeInvestments || user.activeInvestments.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 text-xs font-semibold">
+                    Você ainda não possui nenhuma assinatura ativa.
+                  </div>
+                ) : (
+                  user.activeInvestments.map((inv) => (
+                    <div key={inv.id} className="bg-slate-950 border border-slate-850 rounded-2xl p-3.5 flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        {inv.image ? (
+                          <img src={inv.image} alt={inv.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Car size={20} className="text-cyan-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-black text-slate-100 truncate">{inv.name}</h4>
+                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                          Lucro Diário: <span className="text-cyan-400">R$ {inv.dailyProfit.toFixed(2)}</span>
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-500">
+                          Acumulado: <span className="text-emerald-400">R$ {inv.accumulated.toFixed(2)}</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-slate-400 font-mono block">R$ {inv.price.toFixed(0)}</span>
+                        <span className="text-[9px] font-bold text-amber-500 mt-1 block font-mono">Ativo</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-slate-850 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSubscriptionsModal(false)}
+                  className="w-full h-11 bg-slate-950 border border-slate-800 text-slate-400 font-semibold text-xs rounded-xl hover:text-slate-200 transition-colors"
+                >
+                  Fechar
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
