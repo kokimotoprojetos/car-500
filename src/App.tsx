@@ -30,25 +30,19 @@ function syncOfflineEarnings(user: UserState): UserState {
 
   let missingEarnings = 0;
   const now = new Date();
-  
-  // Set the current time to midnight local time for comparison
-  const currentMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   const syncedInvestments = user.activeInvestments.map(inv => {
-    const boughtDate = new Date(inv.boughtAt);
-    const boughtMidnight = new Date(boughtDate.getFullYear(), boughtDate.getMonth(), boughtDate.getDate()).getTime();
+    // Calculate how many strict 24-hour periods have passed since purchase
+    let passedDays = Math.floor((now.getTime() - inv.boughtAt) / (1000 * 60 * 60 * 24));
     
-    // Calculate how many midnights have passed since purchase
-    let passedMidnights = Math.round((currentMidnight - boughtMidnight) / (1000 * 60 * 60 * 24));
-    
-    // Cap passed midnights to the maximum validity days of the plan
-    passedMidnights = Math.min(Math.max(0, passedMidnights), inv.validityDays);
+    // Cap passed days to the maximum validity days of the plan
+    passedDays = Math.min(Math.max(0, passedDays), inv.validityDays);
 
     // Calculate how many days have already been paid based on accumulated value
     // (Floor is used to handle fractional values from the legacy per-second system)
     const paidDays = Math.floor((inv.accumulated || 0) / inv.dailyProfit);
     
-    const missingDays = passedMidnights - paidDays;
+    const missingDays = passedDays - paidDays;
     
     if (missingDays > 0) {
       const missingProfit = missingDays * inv.dailyProfit;
