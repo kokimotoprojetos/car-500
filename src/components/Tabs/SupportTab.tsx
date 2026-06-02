@@ -1,6 +1,5 @@
 import React from 'react';
-import { Headphones, ChevronRight, MessageSquare, Clock, Globe } from 'lucide-react';
-import { motion } from 'motion/react';
+import { ChevronRight, Clock, Globe } from 'lucide-react';
 
 interface SupportTabProps {
   onOpenLiveChat: () => void;
@@ -8,10 +7,14 @@ interface SupportTabProps {
   onNavigate: (tabId: string) => void;
 }
 
-export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }: SupportTabProps) {
+export default function SupportTab({ onNavigate }: SupportTabProps) {
   
-  const handleOpenLink = (channelName: string) => {
+  const handleOpenSupport = () => {
     window.open('https://t.me/car500support', '_blank');
+  };
+
+  const handleOpenGroup = () => {
+    window.open('https://t.me/+ja70dmEHzBRhMzhh', '_blank');
   };
 
   return (
@@ -39,9 +42,9 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
 
         <div className="relative z-10 w-full text-center space-y-1.5 pb-2">
           <span className="text-[10px] text-cyan-400 font-extrabold tracking-widest uppercase">Canal de Ajuda VIP</span>
-          <h2 className="text-2xl font-black text-white tracking-tight uppercase">CUSTOMER SUPPORT</h2>
+          <h2 className="text-2xl font-black text-white tracking-tight uppercase">SUPORTE AO CLIENTE</h2>
           <p className="text-[9px] text-[#06b6d4] font-extrabold tracking-wider uppercase flex items-center justify-center gap-1">
-            <Clock size={11} className="text-cyan-400" /> New Working hours 00:00-23:59
+            <Clock size={11} className="text-cyan-400" /> Horário de Atendimento 00:00-23:59
           </p>
         </div>
       </div>
@@ -49,10 +52,11 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
       <div className="p-4 space-y-4">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Atendimento Online</h3>
 
-        {/* Support items grid mimicking screenshot 5 */}
+        {/* Support items grid */}
         <div className="space-y-2.5">
+          {/* Support VIP */}
           <button
-            onClick={() => handleOpenLink('Telegram 1')}
+            onClick={handleOpenSupport}
             className="w-full h-18 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center gap-3.5">
@@ -61,32 +65,15 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
               </div>
               <div className="text-left">
                 <h4 className="text-xs font-black text-slate-200">Telegram Suporte VIP</h4>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Atendimento 1-on-1</p>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Atendimento 1-on-1 para saques e dúvidas</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-slate-500" />
           </button>
 
-          {/* Telegram Exclusive Service 1 */}
+          {/* Group VIP */}
           <button
-            onClick={() => handleOpenLink('Telegram - Canal 1')}
-            className="w-full h-18 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer"
-          >
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-950/80 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                <span className="text-xl">✈️</span>
-              </div>
-              <div className="text-left">
-                <h4 className="text-xs font-black text-slate-200">Telegram Exclusive</h4>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Atendimento de Suporte Telegram</p>
-              </div>
-            </div>
-            <ChevronRight size={16} className="text-slate-500" />
-          </button>
-
-          {/* Telegram Exclusive Service 2 */}
-          <button
-            onClick={() => handleOpenLink('Telegram - Canal 2')}
+            onClick={handleOpenGroup}
             className="w-full h-18 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center gap-3.5">
@@ -94,8 +81,8 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
                 <span className="text-xl">📢</span>
               </div>
               <div className="text-left">
-                <h4 className="text-xs font-black text-slate-200">Telegram Channel</h4>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mural de Comunicados do Clã 500CAR</p>
+                <h4 className="text-xs font-black text-slate-200">Grupo VIP Telegram</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mural de Comunicados e Resultados do Clã 500CAR</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-slate-500" />
@@ -109,7 +96,7 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
             <h4 className="text-xs font-bold text-slate-200">Dicas Importantes</h4>
           </div>
           <p className="text-[10px] text-slate-500 leading-relaxed font-semibold">
-            Nossos gerentes simulados de atendimento oficial nunca solicitam sua senha secreta para validação. Dúvidas na plataforma de teste? Use o chat rápido do aplicativo.
+            Nossos gerentes oficiais nunca solicitam sua senha secreta para validação. Dúvidas na plataforma? Fale conosco no Telegram de Suporte.
           </p>
         </div>
       </div>

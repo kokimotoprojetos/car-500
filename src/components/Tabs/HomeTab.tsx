@@ -649,7 +649,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
 
               {/* Telegram Group Button */}
               <a
-                href="https://t.me/+JDFnKWdN7FwyOTFl"
+                href="https://t.me/+ja70dmEHzBRhMzhh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 w-full h-12 bg-[#229ED9] hover:bg-[#1a8bbf] active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#229ED9]/20 cursor-pointer"
@@ -707,7 +707,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
               <div className="space-y-3">
                 {/* Telegram button */}
                 <a
-                  href="https://t.me/+JDFnKWdN7FwyOTFl"
+                  href="https://t.me/+ja70dmEHzBRhMzhh"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full h-12 bg-[#229ED9] hover:bg-[#1a8bbf] active:scale-95 transition-all rounded-xl flex items-center justify-center gap-2.5 shadow-lg shadow-[#229ED9]/20 cursor-pointer"
