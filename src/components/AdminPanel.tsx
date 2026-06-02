@@ -106,6 +106,7 @@ export default function AdminPanel() {
   const [editingUserPhone, setEditingUserPhone] = useState<string | null>(null);
   const [editBalance, setEditBalance] = useState('');
   const [editVip, setEditVip] = useState<'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond'>('Bronze');
+  const [editIsLeader, setEditIsLeader] = useState(false);
 
   // Toast message
   const [toast, setToast] = useState<string | null>(null);
@@ -188,6 +189,7 @@ export default function AdminPanel() {
     setEditingUserPhone(user.phone);
     setEditBalance(user.balance.toString());
     setEditVip(user.vipLevel);
+    setEditIsLeader(!!user.isLeader);
   };
 
   const saveEdit = async (user: UserState) => {
@@ -201,7 +203,8 @@ export default function AdminPanel() {
     const updatedUser: UserState = {
       ...user,
       balance: parsedBalance,
-      vipLevel: editVip
+      vipLevel: editVip,
+      isLeader: editIsLeader
     };
 
     const success = await saveUserToSupabase(updatedUser);
@@ -670,7 +673,14 @@ export default function AdminPanel() {
                     >
                       {/* Email/Gmail */}
                       <td className="py-3.5 px-4 font-bold text-slate-200 select-all truncate max-w-[200px]">
-                        {item.phone}
+                        <div className="flex items-center gap-1.5">
+                          <span>{item.phone}</span>
+                          {item.isLeader && (
+                            <span className="px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-500/40 text-blue-400 text-[8px] font-black uppercase tracking-wider shrink-0">
+                              Líder
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* UID */}
@@ -681,17 +691,28 @@ export default function AdminPanel() {
                       {/* VIP Level */}
                       <td className="py-3.5 px-4">
                         {isEditing ? (
-                          <select
-                            value={editVip}
-                            onChange={(e) => setEditVip(e.target.value as any)}
-                            className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-xs focus:outline-none focus:border-cyan-500 text-cyan-400 font-bold"
-                          >
-                            <option value="Bronze">Bronze</option>
-                            <option value="Silver">Silver</option>
-                            <option value="Gold">Gold</option>
-                            <option value="Platinum">Platinum</option>
-                            <option value="Diamond">Diamond</option>
-                          </select>
+                          <div className="flex flex-col gap-2">
+                            <select
+                              value={editVip}
+                              onChange={(e) => setEditVip(e.target.value as any)}
+                              className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-xs focus:outline-none focus:border-cyan-500 text-cyan-400 font-bold w-24"
+                            >
+                              <option value="Bronze">Bronze</option>
+                              <option value="Silver">Silver</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Platinum">Platinum</option>
+                              <option value="Diamond">Diamond</option>
+                            </select>
+                            <label className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={editIsLeader}
+                                onChange={(e) => setEditIsLeader(e.target.checked)}
+                                className="rounded border-slate-800 bg-slate-950 text-cyan-500 focus:ring-0 w-3 h-3"
+                              />
+                              Conta Líder
+                            </label>
+                          </div>
                         ) : (
                           <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${
                             item.vipLevel === 'Diamond' ? 'bg-amber-950 border-amber-500/30 text-amber-400' :

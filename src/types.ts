@@ -50,4 +50,5 @@ export interface UserState {
   passwordHash: string;
   referredBy?: string;
   createdAt?: number;
+  isLeader?: boolean;
 }

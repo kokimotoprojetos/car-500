@@ -44,7 +44,8 @@ function mapUserToDb(user: UserState) {
     active_investments: JSON.stringify(user.activeInvestments),
     password_hash: user.passwordHash,
     referred_by: user.referredBy || '',
-    created_at: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString()
+    created_at: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
+    is_leader: user.isLeader ?? false
   };
 }
 
@@ -73,7 +74,8 @@ function mapDbToUser(dbUser: any): UserState {
       : (dbUser.active_investments || []),
     passwordHash: dbUser.password_hash,
     referredBy: dbUser.referred_by || undefined,
-    createdAt: dbUser.created_at ? new Date(dbUser.created_at).getTime() : undefined
+    createdAt: dbUser.created_at ? new Date(dbUser.created_at).getTime() : undefined,
+    isLeader: !!dbUser.is_leader
   };
 }
 
