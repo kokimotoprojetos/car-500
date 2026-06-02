@@ -272,3 +272,48 @@ export async function payReferralCommission(
     console.error('Error paying referral commission:', err);
   }
 }
+
+/**
+ * Retrieves the counts of Level 2 and Level 3 referred users in the network
+ */
+export async function getReferralNetworkCounts(inviteCode: string): Promise<{ level2: number; level3: number }> {
+  try {
+    const { data: allUsers, error } = await supabase
+      .from('users')
+      .select('uid, referred_by');
+      
+    if (error || !allUsers) {
+      return { level2: 0, level3: 0 };
+    }
+    
+    // Level 1 UIDs
+    const level1Uids = allUsers
+      .filter((u: any) => u.referred_by === inviteCode)
+      .map((u: any) => u.uid)
+      .filter(Boolean);
+      
+    if (level1Uids.length === 0) {
+      return { level2: 0, level3: 0 };
+    }
+    
+    // Level 2 users/UIDs
+    const level2Users = allUsers.filter((u: any) => level1Uids.includes(u.referred_by));
+    const level2Uids = level2Users.map((u: any) => u.uid).filter(Boolean);
+    
+    if (level2Uids.length === 0) {
+      return { level2: level2Users.length, level3: 0 };
+    }
+    
+    // Level 3 users count
+    const level3Count = allUsers.filter((u: any) => level2Uids.includes(u.referred_by)).length;
+    
+    return {
+      level2: level2Users.length,
+      level3: level3Count
+    };
+  } catch (err) {
+    console.error('Error fetching referral network counts:', err);
+    return { level2: 0, level3: 0 };
+  }
+}
+

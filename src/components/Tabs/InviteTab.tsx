@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Copy, Check, Gift, Award, TrendingUp, HelpCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { UserState } from '../../types';
-import { getReferredUsersFromSupabase } from '../../lib/supabase';
+import { getReferredUsersFromSupabase, getReferralNetworkCounts } from '../../lib/supabase';
 
 interface InviteTabProps {
   user: UserState;
@@ -16,14 +16,17 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
   const inviteLink = `https://www.500carinvestl.xyz/?ref=${inviteCode}`;
 
   const [referredUsers, setReferredUsers] = useState<{ phone: string; vipLevel: string; date: string }[]>([]);
+  const [networkCounts, setNetworkCounts] = useState({ level2: 0, level3: 0 });
 
-  // Fetch referred users from Supabase on mount/inviteCode change
+  // Fetch referred users and network counts from Supabase on mount/inviteCode change
   useEffect(() => {
     let active = true;
     async function fetchReferrals() {
       const dbList = await getReferredUsersFromSupabase(inviteCode);
+      const counts = await getReferralNetworkCounts(inviteCode);
       if (active) {
         setReferredUsers(dbList);
+        setNetworkCounts(counts);
       }
     }
     fetchReferrals();
@@ -39,9 +42,20 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalCommissions = (user.rechargeRecords || [])
-    .filter(rec => rec.type === 'reward' && rec.description && rec.description.startsWith('Comissão'))
+  const totalCommissionsL1 = (user.rechargeRecords || [])
+    .filter(rec => rec.type === 'reward' && rec.description && rec.description.includes('1º Nível'))
     .reduce((sum, rec) => sum + rec.amount, 0);
+
+  const totalCommissionsL2 = (user.rechargeRecords || [])
+    .filter(rec => rec.type === 'reward' && rec.description && rec.description.includes('2º Nível'))
+    .reduce((sum, rec) => sum + rec.amount, 0);
+
+  const totalCommissionsL3 = (user.rechargeRecords || [])
+    .filter(rec => rec.type === 'reward' && rec.description && rec.description.includes('3º Nível'))
+    .reduce((sum, rec) => sum + rec.amount, 0);
+
+  const totalCommissions = totalCommissionsL1 + totalCommissionsL2 + totalCommissionsL3;
+
 
   return (
     <div className="flex-1 pb-24 relative overflow-y-auto">
@@ -169,19 +183,19 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Indicados Nível 1 (Diretos)
               </span>
-              <span className="text-slate-200 font-mono font-bold">{referredUsers.length} convidados</span>
+              <span className="text-slate-200 font-mono font-bold">{referredUsers.length} convidados (R$ {totalCommissionsL1.toFixed(2).replace('.', ',')} ganho)</span>
             </div>
             <div className="flex justify-between py-2 items-center">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Indicados Nível 2
               </span>
-              <span className="text-slate-200 font-mono font-bold">5 convidados (R$ 20,00 ganho)</span>
+              <span className="text-slate-200 font-mono font-bold">{networkCounts.level2} convidados (R$ {totalCommissionsL2.toFixed(2).replace('.', ',')} ganho)</span>
             </div>
             <div className="flex justify-between py-2 items-center">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-700" /> Indicados Nível 3
               </span>
-              <span className="text-slate-200 font-mono font-bold">12 convidados (R$ 12,00 ganho)</span>
+              <span className="text-slate-200 font-mono font-bold">{networkCounts.level3} convidados (R$ {totalCommissionsL3.toFixed(2).replace('.', ',')} ganho)</span>
             </div>
             <div className="flex justify-between pt-2 items-center font-bold">
               <span className="text-slate-350">Comissões Totais Acumuladas</span>
