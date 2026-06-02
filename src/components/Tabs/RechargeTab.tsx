@@ -674,7 +674,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 disabled={loadingWithdraw}
                 className="w-full h-12 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center justify-center gap-1"
               >
-                {loadingWithdraw ? 'Processando Saque...' : 'Submeter Saque VIP'}
+                {loadingWithdraw ? 'Processando Saque...' : 'SOLICITAR SAQUE'}
               </button>
 
               {/* Withdrawal rules instructions */}
