@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Users, Search, DollarSign, RefreshCw, Trash2, Edit2, Check, X, ShieldAlert, LogOut, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { UserState, TransactionRecord } from '../types';
 import { getAllUsersFromSupabase, saveUserToSupabase, deleteUserFromSupabase } from '../lib/supabase';
+import { CAR_PACKAGES } from '../data';
 
 const LYTRON_API_URL = 'https://api.lytronpay.com/api/v1';
 const API_KEY = import.meta.env.VITE_LYTRON_API_KEY || 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
@@ -107,6 +108,7 @@ export default function AdminPanel() {
   const [editBalance, setEditBalance] = useState('');
   const [editVip, setEditVip] = useState<'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond'>('Bronze');
   const [editIsLeader, setEditIsLeader] = useState(false);
+  const [selectedPlanToAdd, setSelectedPlanToAdd] = useState<string>('');
 
   // Toast message
   const [toast, setToast] = useState<string | null>(null);
@@ -190,6 +192,7 @@ export default function AdminPanel() {
     setEditBalance(user.balance.toString());
     setEditVip(user.vipLevel);
     setEditIsLeader(!!user.isLeader);
+    setSelectedPlanToAdd('');
   };
 
   const saveEdit = async (user: UserState) => {
@@ -200,11 +203,45 @@ export default function AdminPanel() {
       return;
     }
 
+    let updatedInvestments = [...(user.activeInvestments || [])];
+    let updatedRechargeRecords = [...(user.rechargeRecords || [])];
+    if (selectedPlanToAdd) {
+      const pkg = CAR_PACKAGES.find(p => p.id === selectedPlanToAdd);
+      if (pkg) {
+        const newInvestment = {
+          id: `inv_${Date.now()}`,
+          packageId: pkg.id,
+          name: pkg.name,
+          dailyProfit: pkg.dailyProfit,
+          totalProfit: pkg.totalProfit,
+          validityDays: pkg.validityDays,
+          price: pkg.price,
+          image: pkg.image,
+          boughtAt: Date.now(),
+          accumulated: 0
+        };
+        updatedInvestments = [newInvestment, ...updatedInvestments];
+        
+        // Log transaction
+        const record = {
+          id: `admin_gift_${Date.now()}`,
+          type: 'investment' as const,
+          amount: pkg.price,
+          status: 'success' as const,
+          timestamp: Date.now(),
+          description: `Plano ${pkg.name} ativado pelo Administrador`
+        };
+        updatedRechargeRecords = [record, ...updatedRechargeRecords];
+      }
+    }
+
     const updatedUser: UserState = {
       ...user,
       balance: parsedBalance,
       vipLevel: editVip,
-      isLeader: editIsLeader
+      isLeader: editIsLeader,
+      activeInvestments: updatedInvestments,
+      rechargeRecords: updatedRechargeRecords
     };
 
     const success = await saveUserToSupabase(updatedUser);
@@ -756,7 +793,26 @@ export default function AdminPanel() {
 
                       {/* Active Investments list count */}
                       <td className="py-3.5 px-4 text-slate-450 font-bold">
-                        {item.activeInvestments?.length || 0} pac. ativos
+                        {isEditing ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[9px] text-slate-500 font-bold uppercase">Ativar Novo Plano:</span>
+                            <select
+                              value={selectedPlanToAdd}
+                              onChange={(e) => setSelectedPlanToAdd(e.target.value)}
+                              className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-xs focus:outline-none focus:border-cyan-500 text-cyan-400 font-bold w-36"
+                            >
+                              <option value="">Nenhum (Manter)</option>
+                              <option value="car_1">500Car VIP 1 (R$50)</option>
+                              <option value="car_2">500Car VIP 2 (R$100)</option>
+                              <option value="car_3">500Car VIP 3 (R$300)</option>
+                              <option value="car_4">500Car VIP 4 (R$600)</option>
+                              <option value="car_5">500Car VIP 5 (R$1200)</option>
+                            </select>
+                            <span className="text-[9px] text-slate-500 font-semibold mt-0.5">{item.activeInvestments?.length || 0} ativos</span>
+                          </div>
+                        ) : (
+                          <span>{item.activeInvestments?.length || 0} pac. ativos</span>
+                        )}
                       </td>
 
                       {/* Actions */}
