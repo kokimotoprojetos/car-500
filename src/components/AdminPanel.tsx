@@ -3,6 +3,61 @@ import { Shield, Users, Search, DollarSign, RefreshCw, Trash2, Edit2, Check, X, 
 import { UserState, TransactionRecord } from '../types';
 import { getAllUsersFromSupabase, saveUserToSupabase, deleteUserFromSupabase } from '../lib/supabase';
 
+const LYTRON_API_URL = 'https://api.lytronpay.com/api/v1';
+const API_KEY = import.meta.env.VITE_LYTRON_API_KEY || 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
+const SECRET_KEY = import.meta.env.VITE_LYTRON_SECRET_KEY || ('sk_live_' + 'PTWk8U1d7uPv1rCmF1n0Tn0BxU4U90ZKh17E25O9G9pi6RQ3');
+
+async function generateHmacSignature(rawBody: string, secretKey: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secretKey);
+  const messageData = encoder.encode(rawBody);
+
+  const cryptoKey = await window.crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: { name: "SHA-256" } },
+    false,
+    ["sign"]
+  );
+
+  const signature = await window.crypto.subtle.sign(
+    "HMAC",
+    cryptoKey,
+    messageData
+  );
+
+  const hashArray = Array.from(new Uint8Array(signature));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+function detectPixType(key: string): 'email' | 'cpf' | 'cnpj' | 'phone' | 'evp' {
+  const clean = key.trim();
+  if (clean.includes('@')) return 'email';
+  const onlyDigits = clean.replace(/\D/g, '');
+  if (onlyDigits.length === 11) {
+    if (clean.startsWith('+') || clean.startsWith('55') || clean.startsWith('(')) {
+      return 'phone';
+    }
+    return 'cpf';
+  }
+  if (onlyDigits.length === 14) return 'cnpj';
+  if (onlyDigits.length === 10 || onlyDigits.length === 11) return 'phone';
+  return 'evp';
+}
+
+function formatPixKey(key: string, type: string): string {
+  const clean = key.trim();
+  if (type === 'phone') {
+    let digits = clean.replace(/\D/g, '');
+    if (!digits.startsWith('55')) {
+      digits = '55' + digits;
+    }
+    return '+' + digits;
+  }
+  return clean;
+}
+
 // Generated credentials
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '500caradmin@2026';
@@ -176,7 +231,66 @@ export default function AdminPanel() {
 
   // Moderation Handlers for Withdrawals
   const handleApproveWithdrawal = async (user: UserState, recordId: string, amount: number) => {
-    if (!window.confirm(`Aprovar saque de R$ ${amount.toFixed(2)} para ${user.phone}?`)) return;
+    const targetRecord = user.withdrawRecords.find(rec => rec.id === recordId);
+    if (!targetRecord) {
+      showToast('Transação não encontrada.');
+      return;
+    }
+
+    const pixKey = targetRecord.pixKey;
+    const beneficiaryName = targetRecord.beneficiaryName;
+    const beneficiaryCpf = targetRecord.beneficiaryCpf;
+    const netAmount = targetRecord.netAmount || amount;
+
+    if (!pixKey || !beneficiaryName || !beneficiaryCpf) {
+      if (!window.confirm(`Este saque não possui metadados Pix salvos (saque antigo). Deseja apenas APROVAR no banco de dados e realizar o pagamento manual?`)) {
+        return;
+      }
+    } else {
+      if (!window.confirm(`Aprovar saque e transferir R$ ${netAmount.toFixed(2)} via Pix da LytronPay para ${beneficiaryName} (${pixKey})?`)) return;
+
+      const pixType = detectPixType(pixKey);
+      const formattedKey = formatPixKey(pixKey, pixType);
+
+      const payload = {
+        amount: netAmount,
+        pix: {
+          type: pixType,
+          key: formattedKey
+        },
+        description: `Aprovacao Saque 500Car - Ref: ${recordId}`,
+        deduct_fee: false,
+        recipient_doc: beneficiaryCpf,
+        payer: {
+          name: beneficiaryName,
+          doc: beneficiaryCpf
+        }
+      };
+
+      try {
+        const rawBody = JSON.stringify(payload);
+        const signature = await generateHmacSignature(rawBody, SECRET_KEY);
+
+        const response = await fetch(`${LYTRON_API_URL}/payouts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Api-Access-Key': API_KEY,
+            'Transaction-Hash': signature
+          },
+          body: rawBody
+        });
+
+        const resData = await response.json();
+        if (!response.ok) {
+          throw new Error(resData.message || 'Erro ao realizar Pix pela LytronPay.');
+        }
+        showToast('Pix enviado com sucesso pela LytronPay!');
+      } catch (err: any) {
+        alert(`Falha no pagamento automático (LytronPay): ${err.message || err}\n\nO saque NÃO foi aprovado no banco de dados. Resolva o erro da API ou saldo do gateway e tente novamente.`);
+        return;
+      }
+    }
 
     const updatedWithdraws = user.withdrawRecords.map(rec => {
       if (rec.id === recordId) {
@@ -193,7 +307,7 @@ export default function AdminPanel() {
 
     const success = await saveUserToSupabase(updatedUser);
     if (success) {
-      showToast('Saque APROVADO com sucesso!');
+      showToast('Saque APROVADO com sucesso no banco de dados!');
       setUsersList(prev => prev.map(u => u.phone === user.phone ? updatedUser : u));
     } else {
       showToast('Erro ao processar aprovação no banco de dados.');

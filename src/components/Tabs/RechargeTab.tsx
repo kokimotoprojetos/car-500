@@ -260,7 +260,11 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
         amount: val,
         status: 'pending' as const,
         timestamp: Date.now(),
-        description: `Saque R$${val.toFixed(2)} (líquido R$${netAmount.toFixed(2)}) — Pix: ${destAddress.substring(0, 5)}... — Beneficiário: ${accountName} - CPF: ${rawCpf}`
+        description: `Saque R$${val.toFixed(2)} (líquido R$${netAmount.toFixed(2)}) — Pix: ${destAddress.substring(0, 5)}... — Beneficiário: ${accountName} - CPF: ${rawCpf}`,
+        pixKey: destAddress,
+        beneficiaryName: accountName,
+        beneficiaryCpf: rawCpf,
+        netAmount: netAmount
       };
 
       updated.withdrawRecords = [newRecord, ...updated.withdrawRecords];

@@ -28,6 +28,10 @@ export interface TransactionRecord {
   status: 'pending' | 'success' | 'failed';
   timestamp: number;
   description: string;
+  pixKey?: string;
+  beneficiaryName?: string;
+  beneficiaryCpf?: string;
+  netAmount?: number;
 }
 
 export interface UserState {
