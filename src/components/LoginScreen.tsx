@@ -193,7 +193,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           {/* Phone number input */}
           <div className="space-y-1.5">
             <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-              Número de Telefone / Phone Number
+              Número de Telefone
             </label>
             <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
               <span className="text-xs text-slate-500 uppercase tracking-wider font-bold mr-3 shrink-0">
@@ -213,7 +213,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           {/* Password input */}
           <div className="space-y-1.5">
             <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-              Senha / Password
+              Senha
             </label>
             <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
               <span className="text-xs text-slate-500 uppercase tracking-wider font-bold mr-3 shrink-0">

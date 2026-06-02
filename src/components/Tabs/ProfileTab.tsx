@@ -118,13 +118,13 @@ export default function ProfileTab({ user, onUpdateUser, onLogout, onNavigate, t
             onClick={() => onNavigate('recharge')}
             className="h-11 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5"
           >
-            Depositar / Recharge
+            Depositar
           </button>
           <button
             onClick={() => onNavigate('withdraw')}
             className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5"
           >
-            Sacar / Withdraw
+            Sacar
           </button>
         </div>
       </div>

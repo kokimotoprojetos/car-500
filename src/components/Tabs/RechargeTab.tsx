@@ -312,7 +312,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
           &lt;
         </button>
 
-        <span className="text-[10px] text-cyan-400 font-extrabold tracking-widest uppercase">Carteira / Wallet</span>
+        <span className="text-[10px] text-cyan-400 font-extrabold tracking-widest uppercase">Carteira</span>
         <h2 className="text-2xl font-black text-white mt-1">
           {subTab === 'deposit' ? 'Recarregar Saldo' : 'Sacar Fundos'}
         </h2>
@@ -362,7 +362,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
                 {/* Amount text input fields */}
                 <div className="space-y-1.5">
                   <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                    Valor Recarga / Amount
+                    Valor Recarga
                   </label>
                   <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-cyan-500/50 transition-all">
                     <span className="text-slate-500 font-bold text-sm mr-2 shrink-0">
@@ -549,7 +549,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               {/* Amount input */}
               <div className="space-y-1.5">
                 <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                  Quantia a Sacar / Amount
+                  Quantia a Sacar
                 </label>
                 <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-xl h-14 px-4 focus-within:border-orange-500/50 transition-all">
                   <span className="text-slate-500 font-bold text-sm mr-2 shrink-0">
@@ -569,7 +569,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               {/* Destination inputs */}
               <div className="space-y-1.5">
                 <label className="text-xs uppercase tracking-widest text-[#06b6d4] font-bold block">
-                  Chave Pix / Pix Key
+                  Chave Pix
                 </label>
                 <input
                   type="text"

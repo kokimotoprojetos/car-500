@@ -50,7 +50,7 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
         >
           &lt;
         </button>
-        <span className="text-[10px] text-cyan-400 font-extrabold tracking-widest uppercase">Afiliados / Referrals</span>
+        <span className="text-[10px] text-cyan-400 font-extrabold tracking-widest uppercase">Afiliados</span>
         <h2 className="text-2xl font-black text-white mt-1">Programa de Indicação</h2>
       </div>
 

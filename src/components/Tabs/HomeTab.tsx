@@ -224,7 +224,7 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
           
           <div className="flex justify-between items-center mb-3">
             <div>
-              <span className="text-[10px] uppercase tracking-widest text-[#06b6d4] font-bold">Meu Saldo / Wallet</span>
+              <span className="text-[10px] uppercase tracking-widest text-[#06b6d4] font-bold">Meu Saldo</span>
               <h3 className="text-xl font-black text-slate-100 tracking-tight mt-1">Saldo de Investimento</h3>
             </div>
             <div className="w-8 h-8 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-400">

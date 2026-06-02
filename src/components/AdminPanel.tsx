@@ -271,7 +271,7 @@ export default function AdminPanel() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                Usuário / Admin User
+                Usuário Admin
               </label>
               <input
                 type="text"
@@ -285,7 +285,7 @@ export default function AdminPanel() {
 
             <div className="space-y-1.5">
               <label className="text-xs uppercase tracking-widest text-slate-400 font-bold block">
-                Senha / Password
+                Senha
               </label>
               <input
                 type="password"
