@@ -11,7 +11,7 @@ interface RechargeTabProps {
   initialSubTab?: 'deposit' | 'withdraw';
 }
 
-const PRESETS = [15, 50, 100, 200, 300, 500, 1000];
+const PRESETS = [50, 100, 200, 300, 500, 1000];
 
 const LYTRON_API_URL = 'https://api.lytronpay.com/api/v1';
 const API_KEY = import.meta.env.VITE_LYTRON_API_KEY || 'pk_live_Nh1igIN31B7YU4uHjEryitaW';
