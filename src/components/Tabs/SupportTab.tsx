@@ -11,8 +11,7 @@ interface SupportTabProps {
 export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }: SupportTabProps) {
   
   const handleOpenLink = (channelName: string) => {
-    triggerToast(`Abrindo canal simulado do ${channelName} para fins de demonstração!`);
-    onOpenLiveChat(); // Toggles the fully operational in-app assistant bot directly
+    window.open('https://t.me/car500support', '_blank');
   };
 
   return (
@@ -52,18 +51,17 @@ export default function SupportTab({ onOpenLiveChat, triggerToast, onNavigate }:
 
         {/* Support items grid mimicking screenshot 5 */}
         <div className="space-y-2.5">
-          {/* Whatsapp service */}
           <button
-            onClick={() => handleOpenLink('WhatsApp')}
+            onClick={() => handleOpenLink('Telegram 1')}
             className="w-full h-18 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer"
           >
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950/80 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <span className="text-xl">💬</span>
+              <div className="w-10 h-10 rounded-xl bg-blue-950/80 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <span className="text-xl">✈️</span>
               </div>
               <div className="text-left">
-                <h4 className="text-xs font-black text-slate-200">WhatsApp Exclusive</h4>
-                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Suporte ao Cliente VIP 1-on-1</p>
+                <h4 className="text-xs font-black text-slate-200">Telegram Suporte VIP</h4>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Atendimento 1-on-1</p>
               </div>
             </div>
             <ChevronRight size={16} className="text-slate-500" />

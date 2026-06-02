@@ -349,7 +349,7 @@ export default function App() {
             {/* Float Headset button at bottom-right of viewport for easy quick assistant triggers */}
             <div className="absolute bottom-24 right-5 z-[80] select-none">
               <button
-                onClick={() => setIsLiveChatOpen(true)}
+                onClick={() => window.open('https://t.me/car500support', '_blank')}
                 className="w-12 h-12 rounded-full bg-[#0ea5e9] hover:bg-cyan-400 border border-cyan-300/30 text-white flex items-center justify-center shadow-2xl active:scale-95 hover:scale-105 hover:rotate-6 transition-all cursor-pointer animate-bounce"
               >
                 💬
