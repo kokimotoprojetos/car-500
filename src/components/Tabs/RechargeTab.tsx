@@ -61,6 +61,7 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
 
   // Withdraw states
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawSource, setWithdrawSource] = useState<'principal' | 'bonus'>('principal');
   const [destAddress, setDestAddress] = useState('');
   const [accountName, setAccountName] = useState('');
   const [withdrawCpf, setWithdrawCpf] = useState('');
@@ -224,9 +225,27 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       return;
     }
 
-    if (user.balance < val) {
-      triggerToast(`Saldo insuficiente. Você possui apenas R$${user.balance.toFixed(2)}.`);
-      return;
+    if (withdrawSource === 'principal') {
+      if (user.balance < val) {
+        triggerToast(`Saldo insuficiente. Você possui apenas R$${user.balance.toFixed(2)} no Saldo Principal.`);
+        return;
+      }
+    } else {
+      const currentBonus = user.bonusBalance || 0;
+      if (currentBonus < val) {
+        triggerToast(`Saldo Bônus insuficiente. Você possui apenas R$${currentBonus.toFixed(2)}.`);
+        return;
+      }
+
+      // Check for active plan to withdraw the R$ 16 sign-up bonus
+      const hasActivePlan = user.activeInvestments && user.activeInvestments.length > 0;
+      if (!hasActivePlan) {
+        const maxWithdrawal = Math.max(0, currentBonus - 16);
+        if (val > maxWithdrawal) {
+          triggerToast(`Para sacar os R$16 iniciais, você precisa ter um plano ativo. Seu máximo disponível no momento é R$${maxWithdrawal.toFixed(2)}.`);
+          return;
+        }
+      }
     }
 
     if (!destAddress.trim()) {
@@ -251,8 +270,12 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
       const fee = parseFloat((val * 0.10).toFixed(2));
       const netAmount = parseFloat((val - fee).toFixed(2));
 
-      // Deduct full requested amount from balance
-      updated.balance -= val;
+      // Deduct requested amount from the selected balance
+      if (withdrawSource === 'principal') {
+        updated.balance -= val;
+      } else {
+        updated.bonusBalance = (updated.bonusBalance || 0) - val;
+      }
 
       const newRecord = {
         id: `withdraw_${Date.now()}`,
@@ -539,16 +562,37 @@ export default function RechargeTab({ user, onUpdateUser, triggerToast, onNaviga
               onSubmit={handleWithdrawSubmit}
               className="space-y-4"
             >
-              {/* Info Banner Details */}
-              <div className="bg-slate-900/60 border border-slate-800/80 p-4 rounded-xl space-y-1.5">
-                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block">Saldo Disponível para Saque</span>
-                <div className="flex justify-between items-baseline">
-                  <span className="text-xl font-black text-slate-100 font-mono">
+              {/* Source Selection */}
+              <div className="flex gap-2">
+                <div
+                  onClick={() => setWithdrawSource('principal')}
+                  className={`flex-1 border rounded-xl p-3 cursor-pointer transition-all ${
+                    withdrawSource === 'principal' 
+                      ? 'border-orange-500/50 bg-orange-500/10' 
+                      : 'border-slate-800/80 bg-slate-900/60 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider block mb-1">Saldo Principal</span>
+                  <span className="text-lg font-black text-slate-100 font-mono">
                     R$ {user.balance.toFixed(2)}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">Mínimo: R$10,00</span>
+                </div>
+                
+                <div
+                  onClick={() => setWithdrawSource('bonus')}
+                  className={`flex-1 border rounded-xl p-3 cursor-pointer transition-all ${
+                    withdrawSource === 'bonus' 
+                      ? 'border-orange-500/50 bg-orange-500/10' 
+                      : 'border-slate-800/80 bg-slate-900/60 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <span className="text-[10px] text-orange-400 font-bold uppercase tracking-wider block mb-1">Saldo Bônus</span>
+                  <span className="text-lg font-black text-slate-100 font-mono">
+                    R$ {(user.bonusBalance || 0).toFixed(2)}
+                  </span>
                 </div>
               </div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block text-center">Mínimo para saque: R$10,00</span>
 
               {/* Amount input */}
               <div className="space-y-1.5">

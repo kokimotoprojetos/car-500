@@ -34,6 +34,7 @@ function mapUserToDb(user: UserState) {
     phone: user.phone,
     uid: user.uid,
     balance: user.balance,
+    bonus_balance: user.bonusBalance ?? 0.0,
     job_deposit: user.jobDeposit,
     total_withdrawn: user.totalWithdrawn,
     vip_level: user.vipLevel,
@@ -55,7 +56,8 @@ function mapDbToUser(dbUser: any): UserState {
     uid: dbUser.uid,
     phone: dbUser.phone,
     isLoggedIn: true,
-    balance: parseFloat(dbUser.balance),
+    balance: parseFloat(dbUser.balance || 0),
+    bonusBalance: parseFloat(dbUser.bonus_balance || 0),
     jobDeposit: parseFloat(dbUser.job_deposit || 0),
     totalWithdrawn: parseFloat(dbUser.total_withdrawn || 0),
     vipLevel: dbUser.vip_level || 'Bronze',
@@ -209,7 +211,7 @@ async function creditCommission(referrer: UserState, amount: number, level: numb
   const levelLabel = level === 1 ? '1º Nível (23%)' : level === 2 ? '2º Nível (4%)' : '3º Nível (1%)';
   const updated: UserState = {
     ...referrer,
-    balance: parseFloat((referrer.balance + amount).toFixed(2)),
+    bonusBalance: parseFloat(((referrer.bonusBalance || 0) + amount).toFixed(2)),
     rechargeRecords: [
       {
         id: `comm_${Date.now()}_${level}`,

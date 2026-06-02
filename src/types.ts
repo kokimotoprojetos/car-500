@@ -38,7 +38,8 @@ export interface UserState {
   uid: string;
   phone: string;
   isLoggedIn: boolean;
-  balance: number; // available balance in USDT
+  balance: number; // available principal balance
+  bonusBalance?: number; // bonus balance from sign-up and commissions
   jobDeposit: number; // passive capital or "job deposit"
   totalWithdrawn: number; // sum of successful withdrawals
   vipLevel: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';

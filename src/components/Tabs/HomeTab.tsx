@@ -231,16 +231,35 @@ export default function HomeTab({ user, onUpdateUser, onNavigate, triggerToast }
             </div>
           </div>
 
-          <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
-            <span className="text-3xl font-black text-cyan-400 font-mono">
-              R${user.balance.toFixed(2)}
-            </span>
-            <button
-              onClick={() => onNavigate('recharge')}
-              className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400 border border-cyan-400/30 px-3.5 py-1.5 rounded-xl transition-all shadow-md shrink-0 active:scale-95"
-            >
-              Depositar
-            </button>
+          <div className="flex flex-col gap-2">
+            <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <span className="block text-[9px] uppercase tracking-widest text-slate-500 font-bold mb-1">Principal</span>
+                <span className="text-2xl font-black text-cyan-400 font-mono">
+                  R${user.balance.toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={() => onNavigate('recharge')}
+                className="text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-400 border border-cyan-400/30 px-3.5 py-1.5 rounded-xl transition-all shadow-md shrink-0 active:scale-95"
+              >
+                Depositar
+              </button>
+            </div>
+            <div className="w-full bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <span className="block text-[9px] uppercase tracking-widest text-orange-500/70 font-bold mb-1">Bônus</span>
+                <span className="text-xl font-black text-orange-400 font-mono">
+                  R${(user.bonusBalance || 0).toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={() => onNavigate('recharge')} // They can withdraw from the recharge tab
+                className="text-xs font-semibold bg-orange-950/40 hover:bg-orange-900/40 text-orange-400 border border-orange-400/30 px-3.5 py-1.5 rounded-xl transition-all shadow-md shrink-0 active:scale-95"
+              >
+                Sacar
+              </button>
+            </div>
           </div>
         </div>
       </div>
