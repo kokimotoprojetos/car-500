@@ -353,6 +353,12 @@ export default function AdminPanel() {
   const totalUsers = usersList.length;
   const totalBalances = usersList.reduce((acc, u) => acc + (u.balance || 0), 0);
   const totalWithdrawn = usersList.reduce((acc, u) => acc + (u.totalWithdrawn || 0), 0);
+  const totalDepositedSum = usersList.reduce((acc, u) => {
+    const userDeposited = (u.rechargeRecords || [])
+      .filter(rec => rec.type === 'recharge' && rec.status === 'success')
+      .reduce((sum, rec) => sum + rec.amount, 0);
+    return acc + userDeposited;
+  }, 0);
 
   // Extract pending withdrawals from all users
   const pendingWithdrawals: PendingWithdrawal[] = [];
@@ -477,7 +483,7 @@ export default function AdminPanel() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <div className="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-xl flex items-center gap-4 relative overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-1 bg-cyan-400" />
           <div className="w-11 h-11 rounded-xl bg-cyan-950/60 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
@@ -497,6 +503,17 @@ export default function AdminPanel() {
           <div>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Saldos Totais</span>
             <span className="text-xl font-black text-emerald-400 font-mono">R$ {totalBalances.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800/80 p-5 rounded-2xl shadow-xl flex items-center gap-4 relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1 bg-blue-400" />
+          <div className="w-11 h-11 rounded-xl bg-blue-950/60 border border-blue-500/20 flex items-center justify-center text-blue-450">
+            <DollarSign size={20} />
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Depositado</span>
+            <span className="text-xl font-black text-blue-400 font-mono">R$ {totalDepositedSum.toFixed(2)}</span>
           </div>
         </div>
 
@@ -620,6 +637,7 @@ export default function AdminPanel() {
                 <th className="py-4 px-4">UID</th>
                 <th className="py-4 px-4">Nível VIP</th>
                 <th className="py-4 px-4">Saldo (R$)</th>
+                <th className="py-4 px-4">Depósito Total</th>
                 <th className="py-4 px-4">Total Sacado</th>
                 <th className="py-4 px-4">Investimentos Ativos</th>
                 <th className="py-4 px-4 text-right">Ações</th>
@@ -628,19 +646,22 @@ export default function AdminPanel() {
             <tbody className="divide-y divide-slate-800/40 text-slate-300">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 font-bold">
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-bold">
                     Carregando dados dos usuários do Supabase...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 font-bold">
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-bold">
                     Nenhum usuário cadastrado encontrado.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((item) => {
                   const isEditing = editingUserPhone === item.phone;
+                  const totalDeposited = (item.rechargeRecords || [])
+                    .filter(rec => rec.type === 'recharge' && rec.status === 'success')
+                    .reduce((sum, rec) => sum + rec.amount, 0);
 
                   return (
                     <tr 
@@ -700,6 +721,11 @@ export default function AdminPanel() {
                         ) : (
                           <span className="text-emerald-400">R$ {item.balance.toFixed(2)}</span>
                         )}
+                      </td>
+
+                      {/* Total Deposited */}
+                      <td className="py-3.5 px-4 font-mono text-blue-400 font-semibold">
+                        R$ {totalDeposited.toFixed(2)}
                       </td>
 
                       {/* Total Withdrawn */}
