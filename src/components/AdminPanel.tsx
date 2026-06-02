@@ -271,7 +271,7 @@ export default function AdminPanel() {
         const rawBody = JSON.stringify(payload);
         const signature = await generateHmacSignature(rawBody, SECRET_KEY);
 
-        const response = await fetch('/payout.php', {
+        const response = await fetch('http://128.201.99.154/payout.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
