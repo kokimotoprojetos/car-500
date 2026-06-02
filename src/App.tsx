@@ -20,8 +20,8 @@ import { saveUserToSupabase, getUserFromSupabase } from './lib/supabase';
 import AdminPanel from './components/AdminPanel';
 
 /**
- * Calculates and applies offline passive earnings based on the elapsed time
- * since the investment was bought, minus the earnings already accumulated online.
+ * Calculates and applies daily earnings based on how many midnights have passed
+ * since the investment was bought, ensuring profit is only paid once a day after midnight.
  */
 function syncOfflineEarnings(user: UserState): UserState {
   if (!user.activeInvestments || user.activeInvestments.length === 0) {
@@ -29,26 +29,34 @@ function syncOfflineEarnings(user: UserState): UserState {
   }
 
   let missingEarnings = 0;
-  const now = Date.now();
+  const now = new Date();
+  
+  // Set the current time to midnight local time for comparison
+  const currentMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   const syncedInvestments = user.activeInvestments.map(inv => {
-    // Check elapsed seconds up to the maximum validity of the plan
-    const totalDurationSecs = inv.validityDays * 24 * 60 * 60;
-    const elapsedSecs = Math.min((now - inv.boughtAt) / 1000, totalDurationSecs);
+    const boughtDate = new Date(inv.boughtAt);
+    const boughtMidnight = new Date(boughtDate.getFullYear(), boughtDate.getMonth(), boughtDate.getDate()).getTime();
     
-    if (elapsedSecs <= 0) return inv;
+    // Calculate how many midnights have passed since purchase
+    let passedMidnights = Math.round((currentMidnight - boughtMidnight) / (1000 * 60 * 60 * 24));
+    
+    // Cap passed midnights to the maximum validity days of the plan
+    passedMidnights = Math.min(Math.max(0, passedMidnights), inv.validityDays);
 
-    // Expected total earnings up to this exact second
-    const expectedTotal = elapsedSecs * (inv.dailyProfit / 86400);
-    // Cap at the maximum total profit the plan can yield
-    const cappedTotal = Math.min(expectedTotal, inv.totalProfit);
+    // Calculate how many days have already been paid based on accumulated value
+    // (Floor is used to handle fractional values from the legacy per-second system)
+    const paidDays = Math.floor((inv.accumulated || 0) / inv.dailyProfit);
     
-    // How much the user missed while offline
-    const missing = cappedTotal - (inv.accumulated || 0);
+    const missingDays = passedMidnights - paidDays;
     
-    if (missing > 0) {
-      missingEarnings += missing;
-      return { ...inv, accumulated: cappedTotal };
+    if (missingDays > 0) {
+      const missingProfit = missingDays * inv.dailyProfit;
+      missingEarnings += missingProfit;
+      
+      // Update accumulated to precisely the new paid days * dailyProfit
+      // This wipes out any leftover fraction from the old system and normalizes it
+      return { ...inv, accumulated: (paidDays + missingDays) * inv.dailyProfit };
     }
     
     return inv;
@@ -126,50 +134,28 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Real-time live earnings ticker running globally
+
+
+  // Check for new daily earnings periodically (e.g. at midnight while app is open)
   useEffect(() => {
     if (!user || !user.isLoggedIn || !user.activeInvestments || user.activeInvestments.length === 0) return;
 
-    const ticker = setInterval(() => {
+    const midnightChecker = setInterval(() => {
       setUser((current) => {
         if (!current) return null;
-        if (!current.activeInvestments || current.activeInvestments.length === 0) return current;
-
-        // Calculate second-by-second passive profit increment
-        let incrementSum = 0;
-        const now = Date.now();
         
-        const updatedInvestments = current.activeInvestments.map((inv) => {
-          // Profit per second = dailyProfit / 86400
-          const profitPerSec = inv.dailyProfit / 86400;
-          
-          // Check if plan expired
-          const daysSinceBought = (now - inv.boughtAt) / (1000 * 60 * 60 * 24);
-          if (daysSinceBought > inv.validityDays) {
-            return inv;
-          }
-
-          incrementSum += profitPerSec;
-          return {
-            ...inv,
-            accumulated: (inv.accumulated || 0) + profitPerSec
-          };
-        });
-
-        const nextBalance = current.balance + incrementSum;
-        const updated = {
-          ...current,
-          activeInvestments: updatedInvestments,
-          balance: parseFloat(nextBalance.toFixed(6))
-        };
-
-        // Cache update in local storage
-        localStorage.setItem(`user_state_${current.phone}`, JSON.stringify(updated));
-        return updated;
+        const syncedUser = syncOfflineEarnings(current);
+        // Only update state if balance actually changed
+        if (syncedUser.balance !== current.balance) {
+          localStorage.setItem(`user_state_${current.phone}`, JSON.stringify(syncedUser));
+          return syncedUser;
+        }
+        
+        return current;
       });
-    }, 1000);
+    }, 60000); // check every minute
 
-    return () => clearInterval(ticker);
+    return () => clearInterval(midnightChecker);
   }, [user?.isLoggedIn, user?.activeInvestments?.length]);
 
   // Periodic sync to Supabase (every 10 seconds) to persist passive earnings
