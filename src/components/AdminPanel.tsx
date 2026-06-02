@@ -271,7 +271,7 @@ export default function AdminPanel() {
         const rawBody = JSON.stringify(payload);
         const signature = await generateHmacSignature(rawBody, SECRET_KEY);
 
-        const response = await fetch(`${LYTRON_API_URL}/payouts`, {
+        const response = await fetch('/payout.php', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
