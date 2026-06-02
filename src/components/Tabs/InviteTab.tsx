@@ -39,6 +39,10 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const totalCommissions = (user.rechargeRecords || [])
+    .filter(rec => rec.type === 'reward' && rec.description && rec.description.startsWith('Comissão'))
+    .reduce((sum, rec) => sum + rec.amount, 0);
+
   return (
     <div className="flex-1 pb-24 relative overflow-y-auto">
       {/* Header section */}
@@ -181,7 +185,7 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
             </div>
             <div className="flex justify-between pt-2 items-center font-bold">
               <span className="text-slate-350">Comissões Totais Acumuladas</span>
-              <span className="text-cyan-400 font-mono font-black text-sm">R$ 78,00</span>
+              <span className="text-cyan-400 font-mono font-black text-sm">R$ {totalCommissions.toFixed(2).replace('.', ',')}</span>
             </div>
           </div>
         </div>
