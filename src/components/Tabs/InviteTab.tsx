@@ -164,7 +164,7 @@ export default function InviteTab({ user, triggerToast, onNavigate }: InviteTabP
                     <span className="text-[9px] text-slate-500 font-medium">Data de Cadastro: {refUser.date}</span>
                   </div>
                   <span className="text-[10px] bg-cyan-950 border border-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-mono">
-                    VIP {refUser.vipLevel}
+                    {refUser.vipLevel.startsWith('VIP') ? refUser.vipLevel : 'VIP ' + refUser.vipLevel}
                   </span>
                 </div>
               ))}

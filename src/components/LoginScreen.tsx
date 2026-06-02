@@ -85,7 +85,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           bonusBalance: 16.0,
           jobDeposit: 0.0,
           totalWithdrawn: 0.0,
-          vipLevel: 'Bronze' as const,
+          vipLevel: 'VIP 1' as const,
           checkedInToday: false,
           rechargeRecords: [],
           withdrawRecords: [],

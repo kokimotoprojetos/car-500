@@ -61,7 +61,7 @@ function mapDbToUser(dbUser: any): UserState {
     bonusBalance: parseFloat(dbUser.bonus_balance || 0),
     jobDeposit: parseFloat(dbUser.job_deposit || 0),
     totalWithdrawn: parseFloat(dbUser.total_withdrawn || 0),
-    vipLevel: dbUser.vip_level || 'Bronze',
+    vipLevel: dbUser.vip_level || 'VIP 1',
     checkedInToday: !!dbUser.checked_in_today,
     rechargeRecords: typeof dbUser.recharge_records === 'string' 
       ? JSON.parse(dbUser.recharge_records) 
@@ -139,7 +139,7 @@ export async function getReferredUsersFromSupabase(inviteCode: string): Promise<
 
     return data.map((item: any) => ({
       phone: item.phone,
-      vipLevel: item.vip_level || 'Bronze',
+      vipLevel: item.vip_level || 'VIP 1',
       date: item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')
     }));
   } catch (err) {

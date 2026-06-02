@@ -42,7 +42,7 @@ export interface UserState {
   bonusBalance?: number; // bonus balance from sign-up and commissions
   jobDeposit: number; // passive capital or "job deposit"
   totalWithdrawn: number; // sum of successful withdrawals
-  vipLevel: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+  vipLevel: 'VIP 1' | 'VIP 2' | 'VIP 3' | 'VIP 4' | 'VIP 5';
   checkedInToday: boolean;
   rechargeRecords: TransactionRecord[];
   withdrawRecords: TransactionRecord[];

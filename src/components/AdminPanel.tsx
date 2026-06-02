@@ -106,7 +106,7 @@ export default function AdminPanel() {
   // Edit user modal/inline states
   const [editingUserPhone, setEditingUserPhone] = useState<string | null>(null);
   const [editBalance, setEditBalance] = useState('');
-  const [editVip, setEditVip] = useState<'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond'>('Bronze');
+  const [editVip, setEditVip] = useState<'VIP 1' | 'VIP 2' | 'VIP 3' | 'VIP 4' | 'VIP 5'>('VIP 1');
   const [editIsLeader, setEditIsLeader] = useState(false);
   const [selectedPlanToAdd, setSelectedPlanToAdd] = useState<string>('');
 
@@ -734,11 +734,11 @@ export default function AdminPanel() {
                               onChange={(e) => setEditVip(e.target.value as any)}
                               className="bg-slate-950 border border-slate-800 rounded px-1.5 py-1 text-xs focus:outline-none focus:border-cyan-500 text-cyan-400 font-bold w-24"
                             >
-                              <option value="Bronze">Bronze</option>
-                              <option value="Silver">Silver</option>
-                              <option value="Gold">Gold</option>
-                              <option value="Platinum">Platinum</option>
-                              <option value="Diamond">Diamond</option>
+                              <option value="VIP 1">VIP 1</option>
+                              <option value="VIP 2">VIP 2</option>
+                              <option value="VIP 3">VIP 3</option>
+                              <option value="VIP 4">VIP 4</option>
+                              <option value="VIP 5">VIP 5</option>
                             </select>
                             <label className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold cursor-pointer select-none">
                               <input
@@ -752,13 +752,13 @@ export default function AdminPanel() {
                           </div>
                         ) : (
                           <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${
-                            item.vipLevel === 'Diamond' ? 'bg-amber-950 border-amber-500/30 text-amber-400' :
-                            item.vipLevel === 'Platinum' ? 'bg-indigo-950 border-indigo-500/30 text-indigo-400' :
-                            item.vipLevel === 'Gold' ? 'bg-yellow-950 border-yellow-500/30 text-yellow-400' :
-                            item.vipLevel === 'Silver' ? 'bg-slate-950 border-slate-500/30 text-slate-300' :
+                            item.vipLevel === 'VIP 5' ? 'bg-amber-950 border-amber-500/30 text-amber-400' :
+                            item.vipLevel === 'VIP 4' ? 'bg-indigo-950 border-indigo-500/30 text-indigo-400' :
+                            item.vipLevel === 'VIP 3' ? 'bg-yellow-950 border-yellow-500/30 text-yellow-400' :
+                            item.vipLevel === 'VIP 2' ? 'bg-slate-950 border-slate-500/30 text-slate-300' :
                             'bg-orange-950 border-orange-950/40 text-orange-400'
                           }`}>
-                            {item.vipLevel || 'Bronze'}
+                            {item.vipLevel || 'VIP 1'}
                           </span>
                         )}
                       </td>
